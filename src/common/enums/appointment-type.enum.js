@@ -1,0 +1,5 @@
+module.exports = {
+  CONSULTATION: "CONSULTATION",
+  FOLLOW_UP: "FOLLOW_UP",
+  EMERGENCY: "EMERGENCY",
+};
