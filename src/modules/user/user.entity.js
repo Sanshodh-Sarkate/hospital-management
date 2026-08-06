@@ -4,13 +4,16 @@ const Roles = require('../../common/enums/role.enum')
 const DB = require('../../common/constants/database.constants');
 const { type } = require("node:os");
 
+
+
 const UserEntity = new EntitySchema({
-  name: "User",
-  tableName: "users",
 
-  columns: {
-    ...BaseEntity,
+name: "User",
+tableName: "users",
 
+columns: {
+  ...BaseEntity,
+  
     firstName: {
       name: "first_name",
       type: "varchar",

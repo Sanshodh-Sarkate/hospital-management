@@ -2,6 +2,7 @@ const express =  require('express');
 const authRoute = require('./modules/auth/auth.routes')
 const errorMiddleware = require('./common/middleware/error.middleware');
 const  departmentRoutes  = require('./modules/department/department.routes');
+const  doctorRoutes =  require('./modules/doctor/doctor.routes')
 const cookieParser = require('cookie-parser');
 
 const app  = express();
@@ -16,6 +17,7 @@ app.use(express.json());
 
 app.use('/api/auth' ,authRoute )
 app.use('/api/department' , departmentRoutes)
+app.use('/api/doctor' ,  doctorRoutes)
 
 app.use(errorMiddleware);
 
