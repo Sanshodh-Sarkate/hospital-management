@@ -1,6 +1,6 @@
 const AppDataSource = require("../../config/db");
 const User = require("./user.entity");
-const {MoreThan} =  require('typeorm')
+const { MoreThan } = require('typeorm')
 
 const userRepository = AppDataSource.getRepository(User);
 
@@ -15,6 +15,22 @@ const findUserById = async (id) => {
     where: { id },
   });
 };
+
+const findUserByPhoneNumber = async (phoneNumber) => {
+  return await userRepository.findOne({
+    where: {
+      phoneNumber,
+    },
+  });
+};
+
+// module.exports.findUserByPhoneNumber = async (phoneNumber) => {
+//   const userRepository = getRepository(User);
+//   return await userRepository.findOne({
+//     where: { phoneNumber },
+//   });
+// };
+
 
 const createNewUser = async (userData) => {
   const newUser = userRepository.create(userData);
@@ -51,20 +67,41 @@ const findUserByEmailWithPassword = async (email) => {
   });
 };
 
-const findUserByResetToken =  async(hashToken) => {
-    return  await userRepository.findOne({
-        where : {
-            passwordResetToken:  hashToken ,
-            passwordResetExpires: MoreThan(new Date())
-        },  select: { 
+const findUserByResetToken = async (hashToken) => {
+  return await userRepository.findOne({
+    where: {
+      passwordResetToken: hashToken,
+      passwordResetExpires: MoreThan(new Date())
+    }, select: {
       id: true,
       password: true,
       passwordResetToken: true,
       passwordResetExpires: true,
       passwordChangedAt: true,
-     },
-    });
+    },
+  });
 }
+
+
+// TODO:
+const createNewUserWithTransaction = async (manager, userData) => {
+  const repository = manager.getRepository(User);
+  const user = repository.create(userData);
+  return await repository.save(user);
+
+}
+
+const updateUserWithTransaction = async (manager, userId, updateData) => {
+  const repository = manager.getRepository(User);
+  const user = repository.update(userId, updateData);
+  return await repository.findOne({
+    where: {
+      id: userId
+    }
+  })
+}
+
+
 
 module.exports = {
   findUserByEmail,
@@ -74,5 +111,8 @@ module.exports = {
   deleteUser,
   findAllUsers,
   findUserByEmailWithPassword,
-  findUserByResetToken
+  findUserByResetToken,
+  findUserByPhoneNumber,
+  createNewUserWithTransaction,
+  updateUserWithTransaction
 };
