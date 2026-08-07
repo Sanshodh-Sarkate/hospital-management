@@ -5,12 +5,14 @@ const AppError = require('../../common/errors/app.error');
 const Roles = require('../../common/enums/role.enum')
 const {createPasswordResetToken} =  require('../../common/utils/reset-token.utils')
 const  crypto =  require("crypto")
-const   filterObject  =  require('../../common/utils/filter-object.util')
+const { checkUserUniqueness } = require('../../common/services/business-validation.service');
 
 module.exports.registerUser = async (userData) => {
-    // 1. Check email
-    const existingUser = await userRepository.findUserByEmail(userData.email)
-    if (existingUser) throw new AppError("User with this email already exists", 409);
+    // 1. Check email and phone uniqueness
+    await checkUserUniqueness({
+        email: userData.email,
+        phoneNumber: userData.phoneNumber,
+    });
     // 2. Hash password
     const hashedPassword = await hashPassword(userData.password);
 

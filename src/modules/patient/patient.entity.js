@@ -125,6 +125,28 @@ module.exports = new EntitySchema({
       onDelete: "CASCADE",
       inverseSide: "patient",
     },
+
+        // User who created this patient
+    createdBy: {
+      type: "many-to-one",
+      target: "User",
+      joinColumn: {
+        name: "created_by",
+      },
+      nullable: false,
+      onDelete: "RESTRICT",
+    },
+
+    // User who last updated this patient
+    updatedBy: {
+      type: "many-to-one",
+      target: "User",
+      joinColumn: {
+        name: "updated_by",
+      },
+      nullable: true,
+      onDelete: "SET NULL",
+    },
     appointments: {
     type: "one-to-many",
     target: "Appointment",

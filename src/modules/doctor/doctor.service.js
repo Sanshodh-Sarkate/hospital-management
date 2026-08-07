@@ -5,19 +5,17 @@ const AppDataSource = require("../../config/db");
 const AppError = require('../../common/errors/app.error')
 const filterObject = require("../../common/utils/filter-object.util")
 const { hashPassword, compareHashedPassword } = require('../../common/utils/password.util');
+const { checkUserUniqueness } = require('../../common/services/business-validation.service');
 const { Result } = require("express-validator");
+const Roles = require("../../common/enums/role.enum");
 
 
 module.exports.createDoctor = async (doctorData, adminId) => {
-  // check email  
-  const existingEmail = await userRepository.findUserByEmail(doctorData.email);
-  if (existingEmail) throw new AppError("Email already exists", 409);
-  console.log(doctorData.phoneNumber)
-
-  // check PhoneNumber   
-  const existingPhone = await userRepository.findUserByPhoneNumber(doctorData.phoneNumber);
-  if (existingPhone) throw new AppError("Phone number already exists", 409);
-  console.log('second ', existingPhone);
+  // check email and phone uniqueness
+  await checkUserUniqueness({
+    email: doctorData.email,
+    phoneNumber: doctorData.phoneNumber
+  });
 
 
   // checkDepartment  
@@ -112,26 +110,12 @@ module.exports.updateDoctor = async (doctorId, updatedDoctorData, adminId) => {
       throw new AppError("Department not found", 404);
     }
   }
-  // checkPhone Number  
-  if (
-    updatedDoctorData.phoneNumber &&
-    updatedDoctorData.phoneNumber !== doctor.user.phoneNumber
-  ) {
-    const existingPhone =
-      await userRepository.findUserByPhoneNumber(
-        updatedDoctorData.phoneNumber
-      );
-
-    if (
-      existingPhone &&
-      existingPhone.id !== doctor.user.id
-    ) {
-      throw new AppError(
-        "Phone number already exists",
-        409
-      );
-    }
-  }
+  // check email and phone uniqueness
+  await checkUserUniqueness({
+    email: updatedDoctorData.email,
+    phoneNumber: updatedDoctorData.phoneNumber,
+    excludeUserId: doctor.user.id
+  });
 
   // 4. Check license number
   if (
