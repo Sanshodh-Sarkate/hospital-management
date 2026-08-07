@@ -93,7 +93,7 @@ module.exports = new EntitySchema({
       },
       nullable: false,
       onDelete: "CASCADE",
-      inverseSide: "receptionists",
+      inverseSide: "receptionist",
     },
 
     createdBy: {
