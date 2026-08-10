@@ -33,7 +33,7 @@ module.exports = new EntitySchema({
     },
 
     address: {
-      name: "address_line_1",
+      name: "address",
       type: "varchar",
       length: 255,
       nullable: false,
