@@ -11,3 +11,4 @@ const filterObject = (obj, ...allowedFields) => {
 };
 
 module.exports = filterObject;
+module.exports.filterObject = filterObject;

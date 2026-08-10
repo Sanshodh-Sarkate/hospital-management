@@ -6,7 +6,12 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "typeorm": "typeorm -d src/config/db.js",
+    "migration:generate": "typeorm migration:generate -d src/config/db.js -o",
+    "migration:create": "typeorm migration:create -o",
+    "migration:run": "typeorm migration:run -d src/config/db.js",
+    "migration:revert": "typeorm migration:revert -d src/config/db.js"
   },
   "keywords": [],
   "author": "",

@@ -14,6 +14,14 @@ module.exports = new EntitySchema({
   columns: {
     ...BaseEntity,
 
+     employeeId: {
+      name: "employee_id",
+      type: "varchar",
+      length: 20,
+      unique: true,
+      nullable: false,
+    },
+
     dateOfBirth: {
       name: "date_of_birth",
       type: "date",
@@ -26,8 +34,8 @@ module.exports = new EntitySchema({
       nullable: false,
     },
 
-    addressLine1: {
-      name: "address_line_1",
+    address: {
+      name: "address",
       type: "varchar",
       length: 255,
       nullable: false,
