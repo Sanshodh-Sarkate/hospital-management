@@ -78,12 +78,14 @@ module.exports.getPatientById =  async(patientId) => {
    return patient ; 
 }
 
-module.exports.updatePatient =  async(patientId , patientUpdatedData , logginUserId) => {
-    const patient =  await patientRepository.getPatientById(patientId);
-    if(!patient) throw new AppError("Patient was not found" , 404)
 
-     // check email and phone uniqueness
-  await checkUserUniqueness({
+module.exports.updatePatient =  async(patientId , patientUpdatedData , logginUserId) => {
+  const patient =  await patientRepository.getPatientById(patientId);
+  if(!patient) throw new AppError("Patient was not found" , 404)
+    
+    // check email and phone uniqueness
+    await checkUserUniqueness({
+    
     email: patientUpdatedData.email,
     phoneNumber: patientUpdatedData.phoneNumber,
     excludeUserId: patient.user.id
@@ -132,6 +134,24 @@ return updatePatient ;
   })
 
 }
+
+
+// patient dashboard related sevice flow  and code 
+module.exports.getPatientProfile  =  async (userId) => {
+      const patientProfile =  await  patientRepository.findPatientByUserId(userId)
+       if(!patientProfile) throw new AppError("Patient profile was not found" , 404)
+    
+       return patientProfile ; 
+    }
+
+module.exports.updateMyProfile = async (userId, patientUpdatedData) => {
+  const patient = await patientRepository.findPatientByUserId(userId);
+  if (!patient) throw new AppError("Patient profile was not found", 404);
+
+  // Calling updatePatient executes the AppDataSource.transaction automatically!
+  return await exports.updatePatient(patient.id, patientUpdatedData, userId);
+};
+
 
 
 module.exports.deletePatient = async (patientId, deletedBy) => {

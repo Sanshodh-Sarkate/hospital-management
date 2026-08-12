@@ -89,11 +89,25 @@ const updateReceptionistWithTransaction = async (manager, receptionistId, update
 }
 
 
+const findReceptionistByUserId = async (userId) => {
+  return await receptionistRepository.findOne({
+    where: {
+      user: {
+        id: userId,
+      },
+    },
+    relations: {
+      user: true,
+    },
+  });
+};
+
 module.exports = {
   registerReceptionist,
   getAllReceptionist,
   findReceptionistById,
   findReceptionistByEmployeeId,
+  findReceptionistByUserId,
   findLastEmployeeId,
   updateReceptionistWithTransaction
 }

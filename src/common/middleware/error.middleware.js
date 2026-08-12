@@ -1,12 +1,10 @@
-const errorMiddleware =  (err ,  req , res ,  next) => {
-    const stausCode   = err.stausCode  || 500 ;
-    const status  =  err.status  ||  'error';
+const { sendError } = require('../utils/response.util');
 
-    return  res.status(stausCode ).json({
-        success: false,
-        status: status,
-          message: err.message || "Internal Server Error",
-    });
-}
+const errorMiddleware = (err, req, res, next) => {
+    const statusCode = err.statusCode || err.stausCode || 500;
+    const message = err.message || "Internal Server Error";
 
-module.exports =  errorMiddleware;
+    return sendError(res, statusCode, message);
+};
+
+module.exports = errorMiddleware;
