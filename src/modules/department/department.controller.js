@@ -1,33 +1,21 @@
 const departmentServices =  require('./department.services');
 const asyncHandler  =  require('../../common/utils/async-handler');
+const { sendSuccess } = require('../../common/utils/response.util');
 
 module.exports.createDepartment =  asyncHandler(async(req  , res  , next) => {
     const data  =  await  departmentServices.createNewDepartment( req.user.id , req.body );
-
-    return res.status(200).json ({
-        success: true ,
-        message: "Department created successFully",
-        data 
-    })
-})
+    return sendSuccess(res, 200, "Department created successFully", data);
+});
 
 
 module.exports.getDepartment = asyncHandler(async(req  , res  , next) => {
   const departments  =  await  departmentServices.findAllDepartments();
-    return res.status(200).json({
-    success: true,
-    count: departments.length,
-    data: departments,
-  });
-})
+  return sendSuccess(res, 200, "Departments fetched successfully", departments, { count: departments.length });
+});
 
 module.exports.getDepartmentById  =  asyncHandler(async(req  , res  , next) => {
-    const department  =  await departmentServices.getDepartmentById(req.params.id)
-
-  return res.status(200).json({
-    success: true,
-    data: department,
-  });
+    const department  =  await departmentServices.getDepartmentById(req.params.id);
+    return sendSuccess(res, 200, "Department fetched successfully", department);
 });
 
 
@@ -37,12 +25,7 @@ module.exports.updateDepartment = asyncHandler(async (req, res) => {
       req.params.id,
       req.body
   );
-
-  return res.status(200).json({
-    success: true,
-    message: "Department updated successfully",
-    data: department,
-  });
+  return sendSuccess(res, 200, "Department updated successfully", department);
 });
 
 
@@ -51,10 +34,5 @@ module.exports.deleteDepartment = asyncHandler(async (req, res) => {
     req.params.id,
     req.user.id
   );
-
-  return res.status(200).json({
-    success: true,
-    message: "Department deactivated successfully",
-    data: department,
-  });
-});
+  return sendSuccess(res, 200, "Department deactivated successfully", department);
+});

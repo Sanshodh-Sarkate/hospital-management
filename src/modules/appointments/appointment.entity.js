@@ -101,5 +101,24 @@ module.exports = new EntitySchema({
       target: "Billing",
       inverseSide: "appointment",
     },
+    createdBy: {
+  type: "many-to-one",
+  target: "User",
+  joinColumn: {
+    name: "created_by",
+  },
+  nullable: false,
+  onDelete: "RESTRICT",
+},
+
+updatedBy: {
+  type: "many-to-one",
+  target: "User",
+  joinColumn: {
+    name: "updated_by",
+  },
+  nullable: true,
+  onDelete: "SET NULL",
+},
   },
 });

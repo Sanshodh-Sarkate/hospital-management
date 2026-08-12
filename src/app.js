@@ -4,7 +4,8 @@ const errorMiddleware = require('./common/middleware/error.middleware');
 const  departmentRoutes  = require('./modules/department/department.routes');
 const  doctorRoutes =  require('./modules/doctor/doctor.routes')
 const  patientRoutes =  require('./modules/patient/patient.routes');
-const receptionistRoutes =  require("./modules/receptionist/receptionist.routes")
+const receptionistRoutes =  require("./modules/receptionist/receptionist.routes");
+const appointmentRoutes = require("./modules/appointments/appointment.routes");
 
 const cookieParser = require('cookie-parser');
 
@@ -23,6 +24,7 @@ app.use('/api/department' , departmentRoutes)
 app.use('/api/doctor' ,  doctorRoutes)
 app.use('/api/patient'  , patientRoutes)
 app.use('/api/receptionists' , receptionistRoutes)
+app.use('/api/appointments', appointmentRoutes);
 
 app.use(errorMiddleware);
 

@@ -1,4 +1,5 @@
 const { validationResult } = require("express-validator");
+const { sendError } = require("../utils/response.util");
 
 const validateRequest = (req, res, next) => {
   const errors = validationResult(req);
@@ -15,11 +16,7 @@ const validateRequest = (req, res, next) => {
     }
   });
 
-  return res.status(400).json({
-    success: false,
-    message: "Validation failed",
-    errors: formattedErrors,
-  });
+  return sendError(res, 400, "Validation failed", formattedErrors);
 };
 
-module.exports = validateRequest;
+module.exports = validateRequest;

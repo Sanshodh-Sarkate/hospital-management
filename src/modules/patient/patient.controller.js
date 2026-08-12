@@ -1,53 +1,40 @@
 const patientServices  =  require('./patient.service');
-const asyncHandler  =  require('../../common/utils/async-handler')
+const asyncHandler  =  require('../../common/utils/async-handler');
+const { sendSuccess } = require('../../common/utils/response.util');
 
-module.exports.registerPatient =  asyncHandler(async (req  , res , next) => {
+module.exports.registerPatient = asyncHandler(async (req  , res , next) => {
     const patient  = await patientServices.registerPatient(req.body , req.user.id) ;
-     return res.status(201).json({
-      success: true,
-      message: "Patient created successfully",
-      data: patient,
-    });
-})
+    return sendSuccess(res, 201, "Patient created successfully", patient);
+});
 
-
-module.exports.getAllPatients =  asyncHandler(async (req  , res , next) => {
+module.exports.getAllPatients = asyncHandler(async (req  , res , next) => {
     const patients  =   await patientServices.getAllPatient();
-
-      return res.status(200).json({
-      success: true,
-      message: "Patients fetched successfully",
-      results: patients.length,
-      data: patients,
-    });
-})
+    return sendSuccess(res, 200, "Patients fetched successfully", patients, { results: patients.length });
+});
 
 module.exports.getPatientById = asyncHandler(async (req  , res , next) => {
     const patient  =  await patientServices.getPatientById(req.params.id);
-       return res.status(200).json({
-      success: true,
-      message: "Patient fetched successfully",
-      data: patient,
-    });
-})
+    return sendSuccess(res, 200, "Patient fetched successfully", patient);
+});
 
 module.exports.updatePatient = asyncHandler(async (req  , res , next) => {
     const updatedPatient = await patientServices.updatePatient(req.params.id , req.body , req.user.id);
-     return res.status(200).json({
-      success: true,
-      message: "Patient updated successfully",
-      data: updatedPatient,
-    });
-})
+    return sendSuccess(res, 200, "Patient updated successfully", updatedPatient);
+});
 
 module.exports.deletePatient = asyncHandler(async (req  , res , next) => {
-    const deletedPatient =  await patientServices.deletePatient(req.params.id , req.user.id )
+    const deletedPatient =  await patientServices.deletePatient(req.params.id , req.user.id );
+    return sendSuccess(res, 200, "Patient deleted successfully", deletedPatient);
+});
 
-    return res.status(200).json({
-      success: true,
-      message: "Patient deleted successfully",
-      data: deletedPatient,
-    });
-})
 
+module.exports.getMyProfile = asyncHandler(async (req, res, next) => {
+    const patient = await patientServices.getPatientProfile(req.user.id);
+    return sendSuccess(res, 200, "patient profile", { patient });
+});
+
+module.exports.updateMyProfile = asyncHandler(async (req, res, next) => {
+    const updatedPatientData = await patientServices.updateMyProfile(req.user.id, req.body);
+    return sendSuccess(res, 200, "Profile updated successfully!", { updatedPatientData });
+});
 
