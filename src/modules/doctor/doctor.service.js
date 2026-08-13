@@ -62,9 +62,9 @@ module.exports.createDoctor = async (doctorData, adminId) => {
       "bio"
     );
 
-    doctorInfo.userId = newUser.id;
-    doctorInfo.createdBy = adminId
-    const newDoctor = await doctorRepository.createDoctor(manager, doctorData)
+    doctorInfo.user = { id: newUser.id };
+    doctorInfo.createdBy = { id: adminId };
+    const newDoctor = await doctorRepository.createDoctor(manager, doctorInfo);
 
     return {
       newUser,
