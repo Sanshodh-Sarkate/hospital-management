@@ -33,6 +33,26 @@ module.exports = new EntitySchema({
   },
 
   relations: {
+
+  createdBy: {
+  type: "many-to-one",
+  target: "User",
+  joinColumn: {
+    name: "created_by",
+  },
+  nullable: false,
+  onDelete: "RESTRICT",
+},
+
+updatedBy: {
+  type: "many-to-one",
+  target: "User",
+  joinColumn: {
+    name: "updated_by",
+  },
+  nullable: true,
+  onDelete: "SET NULL",
+},
     //one appoinment has only one presescription
     appointment: {
       type: "one-to-one",
