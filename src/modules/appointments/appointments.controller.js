@@ -1,7 +1,6 @@
 const asyncHandler  =  require('../../common/utils/async-handler');
 const appointmentService   =  require("./appointment.services");
 const { sendSuccess } = require('../../common/utils/response.util');
-const { send } = require('node:process');
 
 module.exports.bookAppointment = module.exports.createAppointment = asyncHandler(async (req ,res , next) => {
     const appointment = await appointmentService.createAppointment(req.body , req.user);
