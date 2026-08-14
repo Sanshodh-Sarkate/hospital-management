@@ -13,6 +13,12 @@ const { generatEmployeeId } = require("../../common/utils/employeeIdGenerator");
 
 
 
+// Get Receptionist Dashboard Metrics
+module.exports.getReceptionistDashboardStats = async () => {
+  return await receptionistRepository.getDashboardMetrics();
+};
+
+
 module.exports.CreateReceptionist = async (receptionistUSerData, adminId) => {
   // check emial  
   await checkUserUniqueness({
