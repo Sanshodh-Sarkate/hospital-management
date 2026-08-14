@@ -3,12 +3,28 @@ const receptionistController = require("./receptionist.controller");
 const validationRequest = require("../../common/middleware/validation.middleware");
 const receptionistValidations = require("./receptionist.validation");
 const authMiddleware = require("../auth/auth.middleware");
+const Roles  =  require('../../common/enums/role.enum')
 
 const router =  express.Router();
 
 router.post('/' ,  authMiddleware.protect ,  authMiddleware.restrictTo("ADMIN") , receptionistValidations.createReceptionistValidation , validationRequest , receptionistController.createReceptionist);
+
+router.get(
+  "/dashboard-metrics",
+  authMiddleware.protect,
+  authMiddleware.restrictTo(
+    Roles.ADMIN,
+    Roles.DOCTOR,
+    Roles.RECEPTIONIST,
+  ),
+  receptionistController.getReceptionistDashboard
+);
+
 router.get('/' ,  authMiddleware.protect ,  authMiddleware.restrictTo("ADMIN") , receptionistController.getAllReceptionists);
+
+
 router.get('/:id' ,  authMiddleware.protect ,  authMiddleware.restrictTo("ADMIN") , receptionistController.getReceptionistById);
+
 router.get('/emp/:employeeId' ,  authMiddleware.protect ,  authMiddleware.restrictTo("ADMIN" , "RECEPTIONIST") , receptionistController.getReceptionistByEmployeeId);
 
 // update the recepationist   

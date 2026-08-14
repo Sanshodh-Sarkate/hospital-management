@@ -2,6 +2,18 @@ const receptionistServices = require('./receptionist.services');
 const asyncHandler = require('../../common/utils/async-handler');
 const { sendSuccess } = require('../../common/utils/response.util');
 
+// Get Receptionist Dashboard Metrics
+module.exports.getReceptionistDashboard = asyncHandler(async (req, res, next) => {
+  const stats = await receptionistServices.getReceptionistDashboardStats();
+  return sendSuccess(
+    res,
+    200,
+    "Receptionist dashboard metrics retrieved successfully",
+    { stats }
+  );
+});
+
+
 module.exports.createReceptionist = asyncHandler(async (req, res, next) => {
   const result = await receptionistServices.CreateReceptionist(req.body, req.user.id);
   return sendSuccess(res, 201, "Receptionist created successfully", result);
