@@ -1,7 +1,7 @@
 const { EntitySchema } = require("typeorm");
 
 const BaseEntity = require("../../common/database/baseEntity");
-
+const  PaymentStatus   =  require('../../common/enums/billing-status.enum')
 module.exports = new EntitySchema({
   name: "Billing",
 
@@ -78,6 +78,14 @@ module.exports = new EntitySchema({
       type: "text",
       nullable: true,
     },
+     paymentStatus: {
+  name: "payment_status",
+  type: "enum",
+  enum: Object.values(PaymentStatus),
+  nullable: false,
+  default: PaymentStatus.UNPAID,
+},
+
   },
 
   relations: {

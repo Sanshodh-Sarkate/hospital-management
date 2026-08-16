@@ -30,6 +30,7 @@ module.exports = new EntitySchema({
       name: "payment_date",
       type: "timestamp",
       nullable: false,
+       default: () => "CURRENT_TIMESTAMP",
     },
 
     transactionId: {

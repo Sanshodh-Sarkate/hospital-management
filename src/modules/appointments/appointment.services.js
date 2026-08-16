@@ -4,6 +4,7 @@ const appointmentRepository = require("./appointment.repository");
 const patientRepository = require("../patient/patient.repository");
 const doctorRepository = require("../doctor/doctor.repository");
 const receptionistRepository = require("../receptionist/receptionist.repository");
+const  billingServices =  require("../billing/billing-services"); 
 
 const AppError = require("../../common/errors/app.error");
 const AppointmentStatus = require("../../common/enums/appointment-status.enum");
@@ -261,7 +262,7 @@ module.exports.confirmAppointment = async (appointmentId, user) => {
   return await AppDataSource.transaction(async (manager) => {
     const existingDoctorAppointment = await appointmentRepository.findDoctorAppointment(manager, appointment.doctor.id, appointment.appointmentDateTime);
     if (existingDoctorAppointment && existingDoctorAppointment.id !== appointment.id &&
-        existingDoctorAppointment.status === AppointmentStatus.CONFIRMED) { 
+      existingDoctorAppointment.status === AppointmentStatus.CONFIRMED) {
       throw new AppError("Doctor is already booked for this time slot by another confirmed appointment", 409);
     }
 
@@ -471,29 +472,29 @@ module.exports.rescheduleAppointment = async (appointmentId, newAppointmentDateT
   );
 };
 
-module.exports.getMyAppointments = async(userId) => {
-  const patient  =   await patientRepository.findPatientByUserId(userId);
-  if(!patient) throw new AppError("patient profile was not found!" , 404) ;
+module.exports.getMyAppointments = async (userId) => {
+  const patient = await patientRepository.findPatientByUserId(userId);
+  if (!patient) throw new AppError("patient profile was not found!", 404);
 
-  const appointments =  await appointmentRepository.getAppointmentByPatientId(patient.id);
+  const appointments = await appointmentRepository.getAppointmentByPatientId(patient.id);
 
   // format data for patient view
   const formattedAppointments = (appointments || []).map((apt) => ({
-      id: apt.id,
-      appointmentDateTime: apt.appointmentDateTime,
-      appointmentType: apt.appointmentType,
-      status: apt.status,
-      reason: apt.reason,
-      consultationNotes: apt.consultationNotes || null,
-      cancellationReason: apt.cancellationReason || null,
-      doctor: {
-          id: apt.doctor?.id,
-          name: apt.doctor?.user 
-              ? `Dr. ${apt.doctor.user.firstName} ${apt.doctor.user.lastName}`
-              : "N/A",
-          specialization: apt.doctor?.specialization || null,
-          department: apt.doctor?.department?.name || null
-      }
+    id: apt.id,
+    appointmentDateTime: apt.appointmentDateTime,
+    appointmentType: apt.appointmentType,
+    status: apt.status,
+    reason: apt.reason,
+    consultationNotes: apt.consultationNotes || null,
+    cancellationReason: apt.cancellationReason || null,
+    doctor: {
+      id: apt.doctor?.id,
+      name: apt.doctor?.user
+        ? `Dr. ${apt.doctor.user.firstName} ${apt.doctor.user.lastName}`
+        : "N/A",
+      specialization: apt.doctor?.specialization || null,
+      department: apt.doctor?.department?.name || null
+    }
   }));
   return formattedAppointments;
 }
@@ -545,11 +546,16 @@ module.exports.completeAppointment = async (
   return await AppDataSource.transaction(
     async (manager) => {
 
-      return await appointmentRepository.updateAppointment(
+     const updatedAppointment = await appointmentRepository.updateAppointmentWithTransaction(
         manager,
         appointmentId,
         appointmentInfo
       );
+
+    //  Auto-generate billing invoice inside the SAME transaction!
+    await billingServices.generateBillingForAppointment(appointmentId , manager)
+
+    return updatedAppointment;
 
     }
   );

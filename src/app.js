@@ -9,6 +9,9 @@ const receptionistRoutes =  require("./modules/receptionist/receptionist.routes"
 const appointmentRoutes = require("./modules/appointments/appointment.routes");
 const prescriptionRoutes =  require('./modules/prescription/prescription.routes')
 const  medicalReportRoutes =  require('./modules/medical-report/medical-report.routes')
+const billingRoutes = require("./modules/billing/billing-routes");
+const paymentRoutes = require("./modules/payment/payment.routes");
+
 
 const cookieParser = require('cookie-parser');
 
@@ -36,6 +39,9 @@ app.use('/api/receptionists' , receptionistRoutes)
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/prescriptions' , prescriptionRoutes);
 app.use('/api/medical-reports' , medicalReportRoutes  )
+app.use("/api/billing", billingRoutes);
+app.use("/api/payments", paymentRoutes);
+
 
 app.use(errorMiddleware);
 
