@@ -3,10 +3,15 @@ const paymentRepository = require("./payment.repository");
 const billingRepository = require("../billing/billing-repository");
 const billingServices = require("../billing/billing-services");
 const patientRepository = require("../patient/patient.repository");
+const userRepository = require("../user/user.repository");
 const AppError = require("../../common/errors/app.error");
 const Roles = require("../../common/enums/role.enum");
 const BillingStatus = require("../../common/enums/billing-status.enum");
 const filterObject = require("../../common/utils/filter-object.util");
+const notificationServices = require("../notification/notification.services");
+const NotificationType = require("../../common/enums/notification-type.enum");
+
+
 
 // 1. Process Payment against a Bill
 const processPayment = async (billingId, paymentData, user) => {
@@ -96,6 +101,25 @@ const processPayment = async (billingId, paymentData, user) => {
   });
 
   const updatedBill = await billingRepository.getBillingById(billingId);
+
+  // 1. 🔔 Auto-notify Patient when payment is processed
+  await notificationServices.notifyUser(
+    billing.patient?.user?.id,
+    "Payment Receipt 💳",
+    `Payment of ₹${newPaymentAmount.toFixed(2)} received via ${paymentData.paymentMethod} for invoice ${billing.billNumber}.`,
+    NotificationType.PAYMENT,
+    { paymentId: savedPayment.id, billingId: billing.id }
+  );
+
+  // 2. 🔔 Auto-notify ALL Active Receptionists at the front desk
+  await notificationServices.notifyRole(
+    Roles.RECEPTIONIST,
+    "Payment Collected 💳",
+    `Payment of ₹${newPaymentAmount.toFixed(2)} received from ${billing.patient?.user?.firstName || "Patient"} for invoice ${billing.billNumber}.`,
+    NotificationType.PAYMENT,
+    { paymentId: savedPayment.id, billingId: billing.id }
+  );
+
 
   return {
     payment: {

@@ -4,14 +4,15 @@ const appointmentRepository = require("./appointment.repository");
 const patientRepository = require("../patient/patient.repository");
 const doctorRepository = require("../doctor/doctor.repository");
 const receptionistRepository = require("../receptionist/receptionist.repository");
-const  billingServices =  require("../billing/billing-services"); 
+const billingServices = require("../billing/billing-services");
 
 const AppError = require("../../common/errors/app.error");
 const AppointmentStatus = require("../../common/enums/appointment-status.enum");
 const DoctorAvailability = require("../../common/enums/doctor-availability.enum");
 const Roles = require("../../common/enums/role.enum");
 const filterObject = require("../../common/utils/filter-object.util");
-const { transcode } = require("node:buffer");
+const notificationServices = require("../notification/notification.services");
+const NotificationType = require("../../common/enums/notification-type.enum");
 
 
 // Book the appointment  
@@ -98,7 +99,29 @@ module.exports.createAppointment = async (appointmentData, user) => {
     }
 
     // Create & Save Appointment
-    return await appointmentRepository.createAppointment(manager, appointmentInfo);
+    const savedAppointment = await appointmentRepository.createAppointment(manager, appointmentInfo);
+
+    // 🔔 1. Auto-notify Patient when appointment is booked
+    await notificationServices.notifyUser(
+      patient.user?.id,
+      "Appointment Booked 📅",
+      `Your appointment with Dr. ${doctor.user?.firstName || "Doctor"} is booked for ${new Date(savedAppointment.appointmentDateTime).toLocaleDateString()}.`,
+      NotificationType.APPOINTMENT,
+      { appointmentId: savedAppointment.id }
+    );
+
+    // 🔔 2. Auto-notify ALL Active Receptionists at the front desk
+    await notificationServices.notifyRole(
+      Roles.RECEPTIONIST,
+      "New Pending Appointment 🔔",
+      `Patient ${patient.user?.firstName || "A patient"} requested an appointment with Dr. ${doctor.user?.firstName || "Doctor"} for ${new Date(savedAppointment.appointmentDateTime).toLocaleDateString()}.`,
+      NotificationType.APPOINTMENT,
+      { appointmentId: savedAppointment.id, patientId: patient.id }
+    );
+
+
+
+    return savedAppointment;
   });
 };
 
@@ -114,6 +137,8 @@ module.exports.getAppointmentById = async (appointmentId) => {
   if (!appointment) {
     throw new AppError("Appointment not found", 404);
   }
+
+
   return appointment;
 };
 
@@ -259,7 +284,7 @@ module.exports.confirmAppointment = async (appointmentId, user) => {
     }
   };
 
-  return await AppDataSource.transaction(async (manager) => {
+  const confirmedAppointment = await AppDataSource.transaction(async (manager) => {
     const existingDoctorAppointment = await appointmentRepository.findDoctorAppointment(manager, appointment.doctor.id, appointment.appointmentDateTime);
     if (existingDoctorAppointment && existingDoctorAppointment.id !== appointment.id &&
       existingDoctorAppointment.status === AppointmentStatus.CONFIRMED) {
@@ -268,7 +293,30 @@ module.exports.confirmAppointment = async (appointmentId, user) => {
 
     return await appointmentRepository.updateAppointmentWithTransaction(manager, appointmentId, appointmentInfo);
   });
+
+  // 1. Auto-notify Patient AFTER transaction finishes
+  await notificationServices.notifyUser(
+    appointment.patient?.user?.id,
+    "Appointment Confirmed",
+    `Your appointment with Dr. ${appointment.doctor?.user?.firstName || "Doctor"} for ${new Date(appointment.appointmentDateTime).toLocaleDateString()} has been confirmed!`,
+    NotificationType.APPOINTMENT,
+    { appointmentId: appointment.id }
+  );
+
+  // 2. Auto-notify Assigned Doctor
+  await notificationServices.notifyUser(
+    appointment.doctor?.user?.id,
+    "New Confirmed Appointment",
+    `You have a confirmed appointment with Patient ${appointment.patient?.user?.firstName || "Patient"} for ${new Date(appointment.appointmentDateTime).toLocaleDateString()}.`,
+    NotificationType.APPOINTMENT,
+    { appointmentId: appointment.id, patientId: appointment.patient?.id }
+  );
+
+
+  return confirmedAppointment;
 };
+
+
 
 
 // Reject appointment
@@ -543,20 +591,80 @@ module.exports.completeAppointment = async (
 
   //  Update Appointment
 
-  return await AppDataSource.transaction(
+  const updatedAppointment = await AppDataSource.transaction(
     async (manager) => {
-
-     const updatedAppointment = await appointmentRepository.updateAppointmentWithTransaction(
+      const updated = await appointmentRepository.updateAppointmentWithTransaction(
         manager,
         appointmentId,
         appointmentInfo
       );
 
-    //  Auto-generate billing invoice inside the SAME transaction!
-    await billingServices.generateBillingForAppointment(appointmentId , manager)
+      // Auto-generate billing invoice inside the SAME transaction!
+      await billingServices.generateBillingForAppointment(appointmentId, manager);
 
-    return updatedAppointment;
-
+      return updated;
     }
   );
+
+  //Auto-create notification for Patient AFTER transaction finishes
+  await notificationServices.notifyUser(
+    appointment.patient?.user?.id,
+    "Appointment Completed 🩺",
+    `Your appointment with Dr. ${appointment.doctor?.user?.firstName || "Doctor"} is now completed.`,
+    NotificationType.APPOINTMENT,
+    { appointmentId: appointment.id }
+  );
+
+
+  return updatedAppointment;
 };
+
+
+// Process 2-Stage Unattended Appointment  Pipeline (Run by Cron)
+module.exports.processUnattendedAppointmentsEscalation = async () => {
+  try {
+    // STAGE 1: Send 3-Hour Warning Reminder to Receptionists
+    const pendingForReminder = await appointmentRepository.getPendingAppointmentsForReminder(3);
+
+    for (const apt of pendingForReminder || []) {
+      // 1. Send Urgent Warning to all Receptionists
+      await notificationServices.notifyRole(
+        Roles.RECEPTIONIST,
+        "Urgent Appointment Warning ⚠️",
+        `Appointment for Patient ${apt.patient?.user?.firstName || "Patient"} with Dr. ${apt.doctor?.user?.firstName || "Doctor"} has been pending for over 3 hours. Please take action immediately!`,
+        NotificationType.APPOINTMENT,
+        { appointmentId: apt.id, patientId: apt.patient?.id }
+      );
+
+      // 2. Mark reminderSentAt timestamp so Stage 1 doesn't repeat
+      await appointmentRepository.updateReminderSentAt(apt.id);
+    }
+
+    // STAGE 2: Auto-Cancel 4-Hour Unattended Pending Appointments
+    const pendingForCancellation = await appointmentRepository.getPendingAppointmentsForCancellation(4);
+
+    for (const apt of pendingForCancellation || []) {
+      // 1. Auto-Cancel appointment status in DB
+      await appointmentRepository.updateAppointmentWithTransaction(
+        AppDataSource.manager,
+        apt.id,
+        {
+          status: AppointmentStatus.CANCELLED,
+          cancellationReason: "Auto-cancelled by system: Unconfirmed by front desk within 4 hours.",
+        }
+      );
+
+      // 2. Send Cancellation Notification to Patient
+      await notificationServices.notifyUser(
+        apt.patient?.user?.id,
+        "Appointment Request Cancelled ❌",
+        `Your appointment request for Dr. ${apt.doctor?.user?.firstName || "Doctor"} was auto-cancelled because it could not be confirmed in time. Please select another slot.`,
+        NotificationType.APPOINTMENT,
+        { appointmentId: apt.id }
+      );
+    }
+  } catch (error) {
+    console.error("Error processing appointment escalation pipeline:", error.message);
+  }
+};
+

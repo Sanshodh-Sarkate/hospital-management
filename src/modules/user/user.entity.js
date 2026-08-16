@@ -102,7 +102,7 @@ columns: {
     notifications: {
       type: "one-to-many",
       target: "Notification",
-      inverseSide: "user",
+      inverseSide: "recipient",
     },
 
   },

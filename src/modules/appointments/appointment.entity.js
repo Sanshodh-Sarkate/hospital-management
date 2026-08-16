@@ -56,6 +56,12 @@ module.exports = new EntitySchema({
       type: "text",
       nullable: true,
     },
+    reminderSentAt: {
+      name: "reminder_sent_at",
+      type: "timestamp",
+      nullable: true,
+    },
+
   },
 
   relations: {
