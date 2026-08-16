@@ -59,6 +59,16 @@ module.exports = new EntitySchema({
       nullable: true,
     },
 
+      reportCharge: {
+      name: "report_charge",
+      type: "decimal",
+      precision: 10,
+      scale: 2,
+      nullable: false,
+      default: 0,
+    },
+
+
     // Generated PDF report path/URL
     reportFileUrl: {
       name: "report_file_url",
@@ -129,15 +139,15 @@ module.exports = new EntitySchema({
       nullable: false,
       onDelete: "RESTRICT",
     },
-      // User who last updated the report
-  updatedBy: {
-    type: "many-to-one",
-    target: "User",
-    joinColumn: {
-      name: "updated_by",
+    // User who last updated the report
+    updatedBy: {
+      type: "many-to-one",
+      target: "User",
+      joinColumn: {
+        name: "updated_by",
+      },
+      nullable: true,
+      onDelete: "SET NULL",
     },
-    nullable: true,
-    onDelete: "SET NULL",
-  },
   },
 });
