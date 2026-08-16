@@ -7,6 +7,9 @@ const AppError = require("../../common/errors/app.error");
 const filterObject   =  require("../../common/utils/filter-object.util")
 const Roles = require("../../common/enums/role.enum");
 const BillingStatus = require("../../common/enums/billing-status.enum");
+const notificationServices = require("../notification/notification.services");
+const NotificationType = require("../../common/enums/notification-type.enum");
+
 
 
 // Generate Unique Invoice Number
@@ -166,6 +169,16 @@ const newBillingData = {
    }))
 
    await billingRepository.createBillingItems(manager , itemsTosave);
+      
+   // 🔔 Auto-notify Patient when invoice is generated
+   await notificationServices.notifyUser(
+     appointment.patient?.user?.id,
+     "New Invoice Generated 🧾",
+     `Invoice ${billNumber} for ₹${finalAmount.toFixed(2)} has been generated for your appointment.`,
+     NotificationType.BILLING,
+     { billingId: saveBilling.id, billNumber }
+   );
+
 
    const  finalBilling  = await billingRepository.getBillingById(saveBilling.id);
    return formatBilling(finalBilling);

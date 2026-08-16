@@ -1,7 +1,9 @@
 const Module = require("node:module");
 const AppDataSource = require("../../config/db");
 const Appointment = require("./appointment.entity")
-
+const { LessThanOrEqual, IsNull, Not } = require("typeorm");
+const AppointmentStatus = require("../../common/enums/appointment-status.enum");
+const appointmentStatusEnum = require("../../common/enums/appointment-status.enum");
 const appointmentRepository = AppDataSource.getRepository(Appointment);
 
 
@@ -115,6 +117,45 @@ const  getAppointmentByPatientId  =   async(patientId) => {
     });
 }
 
+//  Get Pending Appointments needing 3-hour reminder (reminderSentAt IS NULL)
+const getPendingAppointmentsForReminder =  async(hours = 3) => {
+    const thresholdDate = new Date(Date.now() - hours * 60 * 60 * 1000);
+    return await appointmentRepository.find({
+        where: {
+            status: appointmentStatusEnum.PENDING,
+            createdAt: LessThanOrEqual(thresholdDate),
+            reminderSentAt: IsNull()
+        },
+        relations: {
+         patient: { user: true },
+         doctor: { user: true },
+    },
+    })
+}
+
+// Get Pending Appointments needing 4-hour cancellation (reminderSentAt IS NOT NULL)
+const getPendingAppointmentsForCancellation = async (hours = 4) => {
+  const thresholdDate = new Date(Date.now() - hours * 60 * 60 * 1000);
+  return await appointmentRepository.find({
+    where: {
+      status: AppointmentStatus.PENDING,
+      createdAt: LessThanOrEqual(thresholdDate),
+      reminderSentAt: Not(IsNull()),
+    },
+    relations: {
+      patient: { user: true },
+      doctor: { user: true },
+    },
+  });
+};
+
+//  Mark reminderSentAt timestamp
+const updateReminderSentAt = async (appointmentId) => {
+  await appointmentRepository.update(appointmentId, {
+    reminderSentAt: new Date(),
+  });
+};
+
 
 module.exports ={
     createAppointment,
@@ -123,5 +164,8 @@ module.exports ={
     findDoctorAppointment,
     findPatientAppointment,
     updateAppointmentWithTransaction,
-    getAppointmentByPatientId
+    getAppointmentByPatientId,
+    updateReminderSentAt,
+    getPendingAppointmentsForCancellation,
+    getPendingAppointmentsForReminder
 }

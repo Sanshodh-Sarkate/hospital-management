@@ -103,6 +103,13 @@ const updateUserWithTransaction = async (manager, userId, updateData) => {
 
 
 
+const findUsersByRole = async (role) => {
+  return await userRepository.find({
+    where: { role },
+  });
+};
+
+
 module.exports = {
   findUserByEmail,
   findUserById,
@@ -114,5 +121,6 @@ module.exports = {
   findUserByResetToken,
   findUserByPhoneNumber,
   createNewUserWithTransaction,
-  updateUserWithTransaction
-};
+  updateUserWithTransaction,
+  findUsersByRole,
+};

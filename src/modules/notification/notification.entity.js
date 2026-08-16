@@ -1,10 +1,9 @@
 const { EntitySchema } = require("typeorm");
-
 const BaseEntity = require("../../common/database/baseEntity");
+const NotificationType = require("../../common/enums/notification-type.enum");
 
 module.exports = new EntitySchema({
   name: "Notification",
-
   tableName: "notifications",
 
   columns: {
@@ -23,37 +22,32 @@ module.exports = new EntitySchema({
 
     type: {
       type: "enum",
-      enum: [
-        "APPOINTMENT",
-        "PRESCRIPTION",
-        "BILLING",
-        "PAYMENT",
-        "SYSTEM",
-      ],
+      enum: Object.values(NotificationType),
       nullable: false,
     },
 
-    readAt: {
-      name: "read_at",
-      type: "timestamp",
+    metadata: {
+      type: "jsonb",
       nullable: true,
+    },
+
+    isRead: {
+      name: "is_read",
+      type: "boolean",
+      default: false,
+      nullable: false,
     },
   },
 
   relations: {
-    user: {
+    recipient: {
       type: "many-to-one",
-
       target: "User",
-
       joinColumn: {
-        name: "user_id",
+        name: "recipient_id",
       },
-
       nullable: false,
-
       inverseSide: "notifications",
-
       onDelete: "CASCADE",
     },
   },
