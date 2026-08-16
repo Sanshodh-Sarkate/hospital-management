@@ -1,3 +1,4 @@
+// CHANGED
 const express = require("express");
 
 const appointmentController = require("./appointments.controller");
@@ -6,6 +7,7 @@ const appointmentValidation = require("./appointment.validation");
 
 const authMiddleware = require("../auth/auth.middleware");
 const validationRequest = require("../../common/middleware/validation.middleware");
+const { validateQueryFeatures } = require("../../common/middleware/query-validation.middleware");
 const Roles = require("../../common/enums/appointment-status.enum");
 const { RECEPTIONIST } = require("../../common/enums/role.enum");
 
@@ -20,11 +22,14 @@ router.post(
   appointmentController.bookAppointment
 );
 
-
+// CHANGED: Get All Appointments (Supports APIFeatures query parameters)
 router.get('/',
   authMiddleware.protect,
   authMiddleware.restrictTo("ADMIN", "RECEPTIONIST"),
+  validateQueryFeatures,
+  validationRequest,
   appointmentController.getAllAppointments)
+
 
 router.get('/:id',
   authMiddleware.protect,

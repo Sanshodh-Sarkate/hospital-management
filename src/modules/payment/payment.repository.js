@@ -34,18 +34,23 @@ const getPaymentById = async (paymentId) => {
   });
 };
 
-// 3. Get Payments by Billing ID
-const getPaymentsByBillingId = async (billingId) => {
-  return await paymentRepository.find({
-    where: {
-      billing: { id: billingId },
-    },
-    relations: defaultRelations,
-    order: {
-      paymentDate: "DESC",
-    },
-  });
+// CHANGED
+const APIFeatures = require("../../common/utils/api-features.util");
+
+// CHANGED: 3. Get Payments by Billing ID (With APIFeatures Query Builder)
+const getPaymentsByBillingId = async (billingId, queryString = {}) => {
+  const features = new APIFeatures(queryString)
+    .filter(["paymentMethod", "paymentStatus"])
+    .search(["transactionId", "notes"])
+    .sort(["paymentDate", "amount"], { field: "paymentDate", order: "DESC" })
+    .limitFields()
+    .paginate(10);
+
+  const findOptions = features.getFindOptions({ billing: { id: billingId } }, defaultRelations);
+  const [payments, total] = await paymentRepository.findAndCount(findOptions);
+  return features.formatResponse(payments, total);
 };
+
 
 
 const getPaymentStats = async (startDate, endDate) => {

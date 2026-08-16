@@ -1,6 +1,7 @@
+// CHANGED
 const asyncHandler = require('../../common/utils/async-handler');
 const medicalReportService = require("./medical-report.services");
-const { sendSuccess } = require('../../common/utils/response.util');
+const { sendSuccess, sendPaginated } = require('../../common/utils/response.util');
 const logger = require('pino')()
 
 // Create Medical Report
@@ -9,19 +10,17 @@ module.exports.createMedicalReport = asyncHandler(async (req, res, next) => {
     return sendSuccess(res, 201, "Medical report created successfully", { medicalReport });
 });
 
-// Get All Medical Reports (Role-Aware)
+// CHANGED: Get All Medical Reports (Supports APIFeatures query parameters)
 module.exports.getAllMedicalReports = asyncHandler(async (req, res, next) => {
-    const medicalReports = await medicalReportService.getAllMedicalReports(req.user);
-    return sendSuccess(
+    const paginatedData = await medicalReportService.getAllMedicalReports(req.user, req.query);
+    return sendPaginated(
         res,
         200,
         "Medical reports retrieved successfully",
-        {
-            medicalReports,
-            results: medicalReports.length,
-        }
+        paginatedData
     );
 });
+
 
 // Get Medical Report By ID
 module.exports.getMedicalReportById = asyncHandler(async (req, res, next) => {
@@ -29,20 +28,18 @@ module.exports.getMedicalReportById = asyncHandler(async (req, res, next) => {
     return sendSuccess(res, 200, "Medical report retrieved successfully", { medicalReport });
 });
 
-// Get My Medical Reports (Role-Aware Self-Service)
+// CHANGED: Get My Medical Reports (Supports APIFeatures query parameters)
 module.exports.getMyMedicalReports = asyncHandler(async (req, res, next) => {
-    console.log('heloo');
-
-    logger.info("hello")
-    const medicalReports = await medicalReportService.getMyMedicalReports(req.user);
-    return sendSuccess(res, 200, "Medical reports retrieved successfully", { medicalReports, results: medicalReports.length });
+    const paginatedData = await medicalReportService.getMyMedicalReports(req.user, req.query);
+    return sendPaginated(res, 200, "Medical reports retrieved successfully", paginatedData);
 });
 
-// Get Medical Reports By Appointment ID
+// CHANGED: Get Medical Reports By Appointment ID (Supports APIFeatures query parameters)
 module.exports.getAllMedicalReportByAppointmentId = asyncHandler(async (req, res, next) => {
-    const medicalReports = await medicalReportService.getMedicalReportsByAppointmentId(req.params.appointmentId || req.params.id);
-    return sendSuccess(res, 200, "Medical reports retrieved successfully", { medicalReports, results: medicalReports.length });
+    const paginatedData = await medicalReportService.getMedicalReportsByAppointmentId(req.params.appointmentId || req.params.id, req.query);
+    return sendPaginated(res, 200, "Medical reports retrieved successfully", paginatedData);
 });
+
 
 // Update Medical Report
 module.exports.updateMedicalReport = asyncHandler(async (req, res, next) => {

@@ -14,20 +14,31 @@ const createAppointment = async (manager, appointmentData) => {
     return await repository.save(appointment);
 }
 
-//gett all Appointments  
-const getAllAppointments = async () => {
-    return await appointmentRepository.find({
-        relations: {
-            patient: true,
-            doctor: true,
-            receptionist: true,
+// CHANGED
+const APIFeatures = require("../../common/utils/api-features.util");
 
-        },
-        order: {
-            appointmentDateTime: "DESC",
-        },
-    });
-}
+// CHANGED: 2. Get All Appointments (Using APIFeatures Class)
+const getAllAppointments = async (queryString = {}) => {
+  const features = new APIFeatures(queryString)
+    .filter(["status", "appointmentType", "doctorId", "patientId"])
+    .search(["reason"])
+    .sort(["appointmentDateTime", "createdAt", "status"], { field: "appointmentDateTime", order: "DESC" })
+    .limitFields()
+    .paginate(10);
+
+  const findOptions = features.getFindOptions(
+    {},
+    {
+      patient: { user: true },
+      doctor: { user: true },
+      receptionist: { user: true },
+    }
+  );
+
+  const [appointments, total] = await appointmentRepository.findAndCount(findOptions);
+  return features.formatResponse(appointments, total);
+};
+
 
 
 
@@ -98,27 +109,29 @@ const updateAppointmentWithTransaction = async (manager, appointmentId, appointm
 }
 
 
-const  getAppointmentByPatientId  =   async(patientId) => {
-    return await  appointmentRepository.find({
-        where : {
-            patient: {
-                id : patientId,
-            }
-        },
-        relations: {
-            doctor:  {
-                user: true  ,
-                department : true  
-            }
-        },
-         order: {
-            appointmentDateTime: "DESC",
-        },
-    });
-}
+// CHANGED: Get Appointments by Patient ID (With APIFeatures & Patient Authorization Scope)
+const getAppointmentByPatientId = async (patientId, queryString = {}) => {
+  const features = new APIFeatures(queryString)
+    .filter(["status", "appointmentType", "doctorId"])
+    .search(["reason"])
+    .sort(["appointmentDateTime", "createdAt", "status"], { field: "appointmentDateTime", order: "DESC" })
+    .limitFields()
+    .paginate(10);
+
+  const findOptions = features.getFindOptions(
+    { patient: { id: patientId } },
+    {
+      doctor: { user: true, department: true },
+    }
+  );
+
+  const [appointments, total] = await appointmentRepository.findAndCount(findOptions);
+  return features.formatResponse(appointments, total);
+};
+
 
 //  Get Pending Appointments needing 3-hour reminder (reminderSentAt IS NULL)
-const getPendingAppointmentsForReminder =  async(hours = 3) => {
+const getPendingAppointmentsForReminder = async (hours = 3) => {
     const thresholdDate = new Date(Date.now() - hours * 60 * 60 * 1000);
     return await appointmentRepository.find({
         where: {
@@ -127,37 +140,37 @@ const getPendingAppointmentsForReminder =  async(hours = 3) => {
             reminderSentAt: IsNull()
         },
         relations: {
-         patient: { user: true },
-         doctor: { user: true },
-    },
+            patient: { user: true },
+            doctor: { user: true },
+        },
     })
 }
 
 // Get Pending Appointments needing 4-hour cancellation (reminderSentAt IS NOT NULL)
 const getPendingAppointmentsForCancellation = async (hours = 4) => {
-  const thresholdDate = new Date(Date.now() - hours * 60 * 60 * 1000);
-  return await appointmentRepository.find({
-    where: {
-      status: AppointmentStatus.PENDING,
-      createdAt: LessThanOrEqual(thresholdDate),
-      reminderSentAt: Not(IsNull()),
-    },
-    relations: {
-      patient: { user: true },
-      doctor: { user: true },
-    },
-  });
+    const thresholdDate = new Date(Date.now() - hours * 60 * 60 * 1000);
+    return await appointmentRepository.find({
+        where: {
+            status: AppointmentStatus.PENDING,
+            createdAt: LessThanOrEqual(thresholdDate),
+            reminderSentAt: Not(IsNull()),
+        },
+        relations: {
+            patient: { user: true },
+            doctor: { user: true },
+        },
+    });
 };
 
 //  Mark reminderSentAt timestamp
 const updateReminderSentAt = async (appointmentId) => {
-  await appointmentRepository.update(appointmentId, {
-    reminderSentAt: new Date(),
-  });
+    await appointmentRepository.update(appointmentId, {
+        reminderSentAt: new Date(),
+    });
 };
 
 
-module.exports ={
+module.exports = {
     createAppointment,
     getAllAppointments,
     getAppointmentById,

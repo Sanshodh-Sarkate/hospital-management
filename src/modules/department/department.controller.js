@@ -1,6 +1,7 @@
+// CHANGED
 const departmentServices =  require('./department.services');
 const asyncHandler  =  require('../../common/utils/async-handler');
-const { sendSuccess } = require('../../common/utils/response.util');
+const { sendSuccess, sendPaginated } = require('../../common/utils/response.util');
 
 module.exports.createDepartment =  asyncHandler(async(req  , res  , next) => {
     const data  =  await  departmentServices.createNewDepartment( req.user.id , req.body );
@@ -8,10 +9,12 @@ module.exports.createDepartment =  asyncHandler(async(req  , res  , next) => {
 });
 
 
+// CHANGED: Get All Departments (Supports APIFeatures query parameters)
 module.exports.getDepartment = asyncHandler(async(req  , res  , next) => {
-  const departments  =  await  departmentServices.findAllDepartments();
-  return sendSuccess(res, 200, "Departments fetched successfully", departments, { count: departments.length });
+  const departments  =  await  departmentServices.findAllDepartments(req.query);
+  return sendPaginated(res, 200, "Departments fetched successfully", departments);
 });
+
 
 module.exports.getDepartmentById  =  asyncHandler(async(req  , res  , next) => {
     const department  =  await departmentServices.getDepartmentById(req.params.id);
@@ -35,4 +38,4 @@ module.exports.deleteDepartment = asyncHandler(async (req, res) => {
     req.user.id
   );
   return sendSuccess(res, 200, "Department deactivated successfully", department);
-});
+});

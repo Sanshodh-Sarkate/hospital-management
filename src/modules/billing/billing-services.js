@@ -202,19 +202,24 @@ module.exports.getBillingById = async (billingId, user) => {
   return formatBilling(billing);
 };
 // Get All Bills (Admin / Receptionist)
-module.exports.getAllBillings = async () => {
-  const billings = await billingRepository.getAllBillings();
-  return billings.map(formatBilling);
+// CHANGED: Get All Bills (Admin / Receptionist With APIFeatures)
+module.exports.getAllBillings = async (queryString = {}) => {
+  const result = await billingRepository.getAllBillings(queryString);
+  result.items = (result.items || []).map(formatBilling);
+  return result;
 };
-// Get My Bills (Patient Self-Service)
-module.exports.getMyBillings = async (user) => {
+
+// CHANGED: Get My Bills (Patient Self-Service With APIFeatures)
+module.exports.getMyBillings = async (user, queryString = {}) => {
   const patient = await patientRepository.findPatientByUserId(user.id);
   if (!patient) {
     throw new AppError("Patient profile not found", 404);
   }
-  const billings = await billingRepository.getBillingsByPatientId(patient.id);
-  return billings.map(formatBilling);
+  const result = await billingRepository.getBillingsByPatientId(patient.id, queryString);
+  result.items = (result.items || []).map(formatBilling);
+  return result;
 };
+
 
 
 // Update / Finalize Bill (Receptionist & Admin)

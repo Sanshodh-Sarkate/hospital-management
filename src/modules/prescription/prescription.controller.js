@@ -1,6 +1,7 @@
+// CHANGED
 const  prescriptionService  =  require('./prescription.service')
 const asyncHandler  =  require('../../common/utils/async-handler');
-const { sendSuccess } = require('../../common/utils/response.util');
+const { sendSuccess, sendPaginated } = require('../../common/utils/response.util');
 
 module.exports.getPrescriptionById =  asyncHandler(async (req , res , next) => {
     const prescription =  await prescriptionService.getPrescriptionById(req.params.id ,  req.user);
@@ -21,29 +22,30 @@ module.exports.createPrescription = asyncHandler(async (req , res , next) =>{
 });
 
 
-// Get All Prescriptions
+// CHANGED: Get All Prescriptions (Supports APIFeatures query parameters)
 module.exports.getPrescriptions =  asyncHandler(async (req , res , next) => {
-    const prescriptions =
+    const paginatedData =
       await prescriptionService.getPrescriptions(
-        req.user
+        req.user,
+        req.query
       );
 
-   return sendSuccess(res  , 200 ,  "prescription fetched successFully!" , {prescriptions})
-})
-
-
-// Get My Prescriptions
-module.exports.getMyPrescriptions =  asyncHandler(async (req , res , next) => {
-  
-    const prescriptions =
-      await prescriptionService.getMyPrescriptions(
-        req.user.id
-      );
-
-      return sendSuccess(res  , 200 ,  "prescription fetched successFully!" , {prescriptions})
-
-    
+   return sendPaginated(res  , 200 ,  "prescription fetched successFully!" , paginatedData)
 });
+
+
+
+// CHANGED: Get My Prescriptions (Supports APIFeatures query parameters)
+module.exports.getMyPrescriptions =  asyncHandler(async (req , res , next) => {
+    const paginatedData =
+      await prescriptionService.getMyPrescriptions(
+        req.user.id,
+        req.query
+      );
+
+      return sendPaginated(res  , 200 ,  "prescription fetched successFully!" , paginatedData)
+});
+
 
 
 

@@ -84,9 +84,11 @@ module.exports.CreateReceptionist = async (receptionistUSerData, adminId) => {
 }
 
 
-module.exports.getAllReceptionist = async () => {
-  return await receptionistRepository.getAllReceptionist();
-}
+// CHANGED: Get All Receptionists (Supports APIFeatures query parameters)
+module.exports.getAllReceptionist = async (queryString = {}) => {
+  return await receptionistRepository.getAllReceptionist(queryString);
+};
+
 
 module.exports.getReceptionistById = async (receptionistId) => {
   return await receptionistRepository.findReceptionistById(receptionistId);

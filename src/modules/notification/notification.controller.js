@@ -1,15 +1,14 @@
+// CHANGED
 const asyncHandler = require("../../common/utils/async-handler");
 const notificationServices = require("./notification.services");
-const { sendSuccess } = require("../../common/utils/response.util");
+const { sendSuccess, sendPaginated } = require("../../common/utils/response.util");
 
-// 1. Get My Notifications
+// CHANGED: 1. Get My Notifications (Supports APIFeatures query parameters)
 module.exports.getMyNotifications = asyncHandler(async (req, res, next) => {
-  const notifications = (await notificationServices.getMyNotifications(req.user)) || [];
-  return sendSuccess(res, 200, "Notifications retrieved successfully", {
-    notifications,
-    results: notifications.length,
-  });
+  const notifications = await notificationServices.getMyNotifications(req.user, req.query);
+  return sendPaginated(res, 200, "Notifications retrieved successfully", notifications);
 });
+
 
 
 // 2. Get Unread Count

@@ -63,24 +63,37 @@ const getBillingByAppointmentId = async (appointmentId) => {
 };
 
 
-// 6. Get All Billings (Admin / Receptionist)
-const getAllBillings = async () => {
-  return await billingRepository.find({
-    relations: defaultRelations,
-    order: { createdAt: "DESC" },
-  });
+// CHANGED
+const APIFeatures = require("../../common/utils/api-features.util");
+
+// CHANGED: 6. Get All Billings (With APIFeatures Query Builder)
+const getAllBillings = async (queryString = {}) => {
+  const features = new APIFeatures(queryString)
+    .filter(["paymentStatus", "patientId", "appointmentId"])
+    .search(["billNumber", "notes"])
+    .sort(["createdAt", "finalAmount", "paymentStatus"], { field: "createdAt", order: "DESC" })
+    .limitFields()
+    .paginate(10);
+
+  const findOptions = features.getFindOptions({}, defaultRelations);
+  const [billings, total] = await billingRepository.findAndCount(findOptions);
+  return features.formatResponse(billings, total);
 };
 
-// 7. Get Billings By Patient ID (Patient Dashboard)
-const getBillingsByPatientId = async (patientId) => {
-  return await billingRepository.find({
-    where: {
-      patient: { id: patientId },
-    },
-    relations: defaultRelations,
-    order: { createdAt: "DESC" },
-  });
+// CHANGED: 7. Get Billings By Patient ID (Patient Dashboard With APIFeatures Scope)
+const getBillingsByPatientId = async (patientId, queryString = {}) => {
+  const features = new APIFeatures(queryString)
+    .filter(["paymentStatus", "appointmentId"])
+    .search(["billNumber", "notes"])
+    .sort(["createdAt", "finalAmount", "paymentStatus"], { field: "createdAt", order: "DESC" })
+    .limitFields()
+    .paginate(10);
+
+  const findOptions = features.getFindOptions({ patient: { id: patientId } }, defaultRelations);
+  const [billings, total] = await billingRepository.findAndCount(findOptions);
+  return features.formatResponse(billings, total);
 };
+
 
 // 8. Update Billing Status / Details (Transaction Support)
 const updateBilling = async (billingId, updateData, manager) => {

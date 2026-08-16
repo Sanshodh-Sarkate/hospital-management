@@ -1,27 +1,32 @@
+// CHANGED
 const AppDataSource = require("../../config/db");
 const Notification = require("./notification.entity");
-const notificationEntity = require("./notification.entity");
+const APIFeatures = require("../../common/utils/api-features.util");
 
-const  notificationRepository  =  AppDataSource.getRepository(Notification);
+const notificationRepository = AppDataSource.getRepository(Notification);
 
 
 // 1. Create Notification
-const createNotification =  async(notficationData) => {
-  const  notification =  await  notificationRepository.create(notficationData);
-  return await  notificationRepository.save(notification);
-} 
+const createNotification = async (notficationData) => {
+  const notification = await notificationRepository.create(notficationData);
+  return await notificationRepository.save(notification);
+}
 
-// 2. Get Notifications by Recipient ID
-const getNotificationsByRecipientId = async (recipientId) => {
-  return await notificationRepository.find({
-    where: {
-      recipient: { id: recipientId },
-    },
-    order: {
-      createdAt: "DESC",
-    },
-  });
+// CHANGED: 2. Get Notifications by Recipient ID (With APIFeatures Query Builder)
+const getNotificationsByRecipientId = async (recipientId, queryString = {}) => {
+  const features = new APIFeatures(queryString)
+    .filter(["isRead", "type"])
+    .search(["title", "message"])
+    .sort(["createdAt", "isRead", "type"], { field: "createdAt", order: "DESC" })
+    .limitFields()
+    .paginate(10);
+
+  const findOptions = features.getFindOptions({ recipient: { id: recipientId } });
+  const [notifications, total] = await notificationRepository.findAndCount(findOptions);
+
+  return features.formatResponse(notifications, total);
 };
+
 
 
 

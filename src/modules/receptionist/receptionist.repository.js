@@ -19,20 +19,29 @@ const registerReceptionist = async (manager, receptionistData) => {
 };
 
 
-const getAllReceptionist = async () => {
-  return await receptionistRepository.find({
-        where: {
-            isActive: true
-        },
-        relations: {
-            user : true
-        },
-        order: {
-            createdAt: "DESC"
-        }
+// CHANGED
+const APIFeatures = require("../../common/utils/api-features.util");
 
-    })
-}
+// CHANGED: Get All Receptionists (With APIFeatures Query Builder)
+const getAllReceptionist = async (queryString = {}) => {
+  const features = new APIFeatures(queryString)
+    .filter(["shift", "isActive"])
+    .search(["employeeId", "qualification", "user.firstName", "user.lastName", "user.email", "user.phoneNumber"])
+    .sort(["createdAt", "employeeId", "shift"], { field: "createdAt", order: "DESC" })
+    .limitFields()
+    .paginate(10);
+
+  const findOptions = features.getFindOptions(
+    { isActive: true },
+    { user: true }
+  );
+
+  const [receptionists, total] = await receptionistRepository.findAndCount(findOptions);
+  return features.formatResponse(receptionists, total);
+};
+
+
+
 
 
 

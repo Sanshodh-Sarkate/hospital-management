@@ -1,9 +1,11 @@
+// CHANGED
 const express = require("express");
 const router = express.Router();
 const paymentController = require("./payment.controller");
 const paymentValidation = require("./payment.validation");
 const authMiddleware = require("../auth/auth.middleware");
 const validateRequest = require("../../common/middleware/validation.middleware");
+const { validateQueryFeatures } = require("../../common/middleware/query-validation.middleware");
 const Roles = require("../../common/enums/role.enum");
 
 router.use(authMiddleware.protect);
@@ -17,12 +19,15 @@ router.post(
   paymentController.processPayment
 );
 
-// 2. Get Payments by Billing ID (Admin, Receptionist, Patient)
+// CHANGED: 2. Get Payments by Billing ID (Admin, Receptionist, Patient Supports APIFeatures)
 router.get(
   "/billings/:billingId",
   authMiddleware.restrictTo(Roles.ADMIN, Roles.RECEPTIONIST, Roles.PATIENT),
+  validateQueryFeatures,
+  validateRequest,
   paymentController.getPaymentsByBillingId
 );
+
 
 // 3. Get Payment Stats Summary (Admin & Receptionist - MUST come before /:id)
 router.get(

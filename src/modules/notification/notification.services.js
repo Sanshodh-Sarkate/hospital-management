@@ -42,11 +42,13 @@ const createNotification = async (notificationData) => {
   return formatNotification(savedNotification);
 };
 
-// 2. Get My Notifications (Authenticated User)
-const getMyNotifications = async (user) => {
-  const notifications = await notificationRepository.getNotificationsByRecipientId(user.id);
-  return (notifications || []).map(formatNotification);
+// CHANGED: 2. Get My Notifications (Authenticated User with APIFeatures)
+const getMyNotifications = async (user, queryString = {}) => {
+  const result = await notificationRepository.getNotificationsByRecipientId(user.id, queryString);
+  result.items = (result.items || []).map(formatNotification);
+  return result;
 };
+
 
 // 3. Get Unread Count (Authenticated User)
 const getUnreadCount = async (user) => {

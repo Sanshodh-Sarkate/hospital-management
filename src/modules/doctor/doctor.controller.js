@@ -1,6 +1,7 @@
+// CHANGED
 const doctorServices  =  require('./doctor.service');
 const asyncHandler  =  require('../../common/utils/async-handler');
-const { sendSuccess } = require('../../common/utils/response.util');
+const { sendSuccess, sendPaginated } = require('../../common/utils/response.util');
 
 // Create Doctor
 module.exports.createDoctor = asyncHandler(async (req , res , next ) => {
@@ -8,11 +9,31 @@ module.exports.createDoctor = asyncHandler(async (req , res , next ) => {
     return sendSuccess(res, 201, "Doctor created successfully", doctor);
 });
 
-// Get All Doctors
-module.exports.getAllDoctors = asyncHandler(async (req , res , next ) => {
-    const doctors  =   await  doctorServices.getAllDoctors();
-    return sendSuccess(res, 200, "Doctors fetched successfully", doctors, { count: doctors.length });
+// CHANGED: Get Doctor Dashboard Metrics
+module.exports.getDoctorDashboardMetrics = asyncHandler(async (req, res, next) => {
+    const stats = await doctorServices.getDoctorDashboardStats(req.user);
+    return sendSuccess(res, 200, "Doctor dashboard metrics retrieved successfully", { stats });
 });
+
+// CHANGED: Get My Doctor Profile
+module.exports.getMyProfile = asyncHandler(async (req, res, next) => {
+    const doctor = await doctorServices.getMyDoctorProfile(req.user.id);
+    return sendSuccess(res, 200, "Doctor profile retrieved successfully", { doctor });
+});
+
+// CHANGED: Get My Doctor Appointments (Supports APIFeatures query parameters)
+module.exports.getMyAppointments = asyncHandler(async (req, res, next) => {
+    const appointments = await doctorServices.getMyDoctorAppointments(req.user, req.query);
+    return sendPaginated(res, 200, "Doctor appointments retrieved successfully" , appointments);
+});
+
+// CHANGED: Get All Doctors (Supports APIFeatures query parameters)
+module.exports.getAllDoctors = asyncHandler(async (req , res , next ) => {
+    const doctors = await doctorServices.getAllDoctors(req.query);
+    return sendPaginated(res, 200, "Doctors fetched successfully", doctors);
+});
+
+
 
 // Get Doctor By ID
 module.exports.getDoctorById = asyncHandler(async (req, res) => {

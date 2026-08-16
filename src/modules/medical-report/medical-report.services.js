@@ -143,11 +143,12 @@ module.exports.createMedicalReport = async (reportData, user) => {
     return formatMedicalReport(savedReport);
 };
 
-// Get All Medical Reports (Role-Aware)
-module.exports.getAllMedicalReports = async (user) => {
+// CHANGED: Get All Medical Reports (Role-Aware With APIFeatures)
+module.exports.getAllMedicalReports = async (user, queryString = {}) => {
     if (user.role === Roles.ADMIN || user.role === Roles.RECEPTIONIST) {
-        const reports = await medicalReportRepository.getAllMedicalReports();
-        return reports.map(formatMedicalReport);
+        const result = await medicalReportRepository.getAllMedicalReports(queryString);
+        result.items = (result.items || []).map(formatMedicalReport);
+        return result;
     }
 
     if (user.role === Roles.DOCTOR) {
@@ -155,8 +156,9 @@ module.exports.getAllMedicalReports = async (user) => {
         if (!doctor) {
             throw new AppError("Doctor profile not found", 404);
         }
-        const reports = await medicalReportRepository.getMedicalReportsByDoctorId(doctor.id);
-        return reports.map(formatMedicalReport);
+        const result = await medicalReportRepository.getMedicalReportsByDoctorId(doctor.id, queryString);
+        result.items = (result.items || []).map(formatMedicalReport);
+        return result;
     }
 
     throw new AppError("You are not authorized to view medical reports", 403);
@@ -171,19 +173,17 @@ module.exports.getMedicalReportById = async (reportId) => {
     return formatMedicalReport(medicalReport);
 };
 
-// Get My Medical Reports (Role-Aware Self-Service)
-module.exports.getMyMedicalReports = async (user) => {
-    console.log('hello world ');
-    logger.info('hello world')
-    
+// CHANGED: Get My Medical Reports (Role-Aware Self-Service With APIFeatures)
+module.exports.getMyMedicalReports = async (user, queryString = {}) => {
     if (user.role === Roles.PATIENT) {
         const patient = await patientRepository.findPatientByUserId(user.id);
         
         if (!patient) {
             throw new AppError("Patient profile not found", 404);
         }
-        const reports = await medicalReportRepository.getMedicalReportsByPatientId(patient.id);
-        return reports.map(formatMedicalReport);
+        const result = await medicalReportRepository.getMedicalReportsByPatientId(patient.id, queryString);
+        result.items = (result.items || []).map(formatMedicalReport);
+        return result;
     }
 
     if (user.role === Roles.DOCTOR) {
@@ -191,28 +191,32 @@ module.exports.getMyMedicalReports = async (user) => {
         if (!doctor) {
             throw new AppError("Doctor profile not found", 404);
         }
-        const reports = await medicalReportRepository.getMedicalReportsByDoctorId(doctor.id);
-        return reports.map(formatMedicalReport);
+        const result = await medicalReportRepository.getMedicalReportsByDoctorId(doctor.id, queryString);
+        result.items = (result.items || []).map(formatMedicalReport);
+        return result;
     }
 
     if (user.role === Roles.ADMIN || user.role === Roles.RECEPTIONIST) {
-        const reports = await medicalReportRepository.getAllMedicalReports();
-        return reports.map(formatMedicalReport);
+        const result = await medicalReportRepository.getAllMedicalReports(queryString);
+        result.items = (result.items || []).map(formatMedicalReport);
+        return result;
     }
 
     throw new AppError("You are not authorized to access medical reports", 403);
 };
 
-// Get Medical Reports By Appointment ID
-module.exports.getMedicalReportsByAppointmentId = async (appointmentId) => {
+// CHANGED: Get Medical Reports By Appointment ID (With APIFeatures)
+module.exports.getMedicalReportsByAppointmentId = async (appointmentId, queryString = {}) => {
     const appointment = await appointmentRepository.getAppointmentById(appointmentId);
     if (!appointment) {
         throw new AppError("Appointment was not found", 404);
     }
 
-    const reports = await medicalReportRepository.getMedicalReportsByAppointmentId(appointmentId);
-    return reports.map(formatMedicalReport);
+    const result = await medicalReportRepository.getMedicalReportsByAppointmentId(appointmentId, queryString);
+    result.items = (result.items || []).map(formatMedicalReport);
+    return result;
 };
+
 
 // Get Medical Reports By Patient ID
 module.exports.getMedicalReportsByPatientId = async (patientId) => {

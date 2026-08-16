@@ -20,16 +20,25 @@ module.exports.findDepartmentByName = async (departmentName) => {
   });
 };
 
-module.exports.findAllDepartments = async () => {
-  return await departmentRepository.find({
-      where: {
-      isActive: true,
-    },
-    order: {
-      departmentName: "ASC",
-    },
-  });
+// CHANGED
+const APIFeatures = require("../../common/utils/api-features.util");
+
+// CHANGED: Get All Departments (With APIFeatures Query Builder)
+module.exports.findAllDepartments = async (queryString = {}) => {
+  const features = new APIFeatures(queryString)
+    .filter(["isActive"])
+    .search(["departmentName", "description"])
+    .sort(["departmentName", "createdAt"], { field: "departmentName", order: "ASC" })
+    .limitFields()
+    .paginate(10);
+
+  const findOptions = features.getFindOptions({ isActive: true });
+  const [departments, total] = await departmentRepository.findAndCount(findOptions);
+  return features.formatResponse(departments, total);
 };
+
+
+
 
 module.exports.updateDepartment = async (id, updateData) => {
   await departmentRepository.update(id, updateData);

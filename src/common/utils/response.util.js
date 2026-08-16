@@ -1,3 +1,4 @@
+// CHANGED
 // Send Success Response
 const sendSuccess = (res, statusCode = 200, message = "Success", data = null, extra = {}) => {
   return res.status(statusCode).json({
@@ -5,6 +6,16 @@ const sendSuccess = (res, statusCode = 200, message = "Success", data = null, ex
     message,
     data,
     ...extra,
+  });
+};
+
+// Send Paginated Collection Response
+const sendPaginated = (res, statusCode = 200, message = "Success", paginatedData = {}) => {
+  return res.status(statusCode).json({
+    success: true,
+    message,
+    data: paginatedData.items || [],
+    pagination: paginatedData.pagination || null,
   });
 };
 
@@ -19,5 +30,6 @@ const sendError = (res, statusCode = 500, message = "Internal Server Error", err
 
 module.exports = {
   sendSuccess,
+  sendPaginated,
   sendError,
 };

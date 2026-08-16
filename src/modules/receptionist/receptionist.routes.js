@@ -1,6 +1,8 @@
+// CHANGED
 const express = require("express");
 const receptionistController = require("./receptionist.controller");
 const validationRequest = require("../../common/middleware/validation.middleware");
+const { validateQueryFeatures } = require("../../common/middleware/query-validation.middleware");
 const receptionistValidations = require("./receptionist.validation");
 const authMiddleware = require("../auth/auth.middleware");
 const Roles  =  require('../../common/enums/role.enum')
@@ -20,7 +22,9 @@ router.get(
   receptionistController.getReceptionistDashboard
 );
 
-router.get('/' ,  authMiddleware.protect ,  authMiddleware.restrictTo("ADMIN") , receptionistController.getAllReceptionists);
+// CHANGED: Get All Receptionists (Supports APIFeatures query parameters)
+router.get('/' ,  authMiddleware.protect ,  authMiddleware.restrictTo("ADMIN") , validateQueryFeatures, validationRequest, receptionistController.getAllReceptionists);
+
 
 
 router.get('/:id' ,  authMiddleware.protect ,  authMiddleware.restrictTo("ADMIN") , receptionistController.getReceptionistById);

@@ -1,20 +1,23 @@
+// CHANGED
 const express   =  require("express");
 const router =  express.Router();
 const billingValidation = require("./billing-validation");
 const validateRequest = require("../../common/middleware/validation.middleware");
+const { validateQueryFeatures } = require("../../common/middleware/query-validation.middleware");
 const billingController  =   require("./billing-controller")
 const authMiddleware = require("../auth/auth.middleware");
 const Roles = require("../../common/enums/role.enum");  
 
 router.use(authMiddleware.protect);
 
-// Get My Invoices (Patient Dashboard)
-router.get('/my' , authMiddleware.restrictTo(Roles.PATIENT),
+// CHANGED: Get My Invoices (Patient Dashboard)
+router.get('/my' , authMiddleware.restrictTo(Roles.PATIENT), validateQueryFeatures, validateRequest,
   billingController.getMyBillings )
 
-// Get All Billings (Admin / Receptionist)
-router.get('/', authMiddleware.restrictTo(Roles.ADMIN , Roles.RECEPTIONIST) , 
+// CHANGED: Get All Billings (Admin / Receptionist)
+router.get('/', authMiddleware.restrictTo(Roles.ADMIN , Roles.RECEPTIONIST) , validateQueryFeatures, validateRequest,
 billingController.getAllBillings);  
+
 
 
 // Get Single Invoice (View Details)
