@@ -10,20 +10,29 @@ const createPatient = async(manager, patientData) => {
     return await repository.save(createNewPatient);
 };
 
-const getAllPatients  = async() => {
-    return await patientRepository.find({
-        where: {
-            isActive: true
-        },
-        relations: {
-            user : true
-        },
-        order: {
-            createdAt: "DESC"
-        }
+// CHANGED
+const APIFeatures = require("../../common/utils/api-features.util");
 
-    })
-}
+// CHANGED: Get All Patients (With APIFeatures Query Builder)
+const getAllPatients = async (queryString = {}) => {
+  const features = new APIFeatures(queryString)
+    .filter(["gender", "bloodGroup", "city", "state", "country", "isActive"])
+    .search(["address", "emergencyContactName", "user.firstName", "user.lastName", "user.email", "user.phoneNumber"])
+    .sort(["createdAt", "gender", "bloodGroup"], { field: "createdAt", order: "DESC" })
+    .limitFields()
+    .paginate(10);
+
+  const findOptions = features.getFindOptions(
+    { isActive: true },
+    { user: true }
+  );
+
+  const [patients, total] = await patientRepository.findAndCount(findOptions);
+  return features.formatResponse(patients, total);
+};
+
+
+
 const getPatientById = async(patientId) => {
     return  await patientRepository.findOne({
         where: {

@@ -1,3 +1,4 @@
+// CHANGED
 const express = require("express");
 const router = express.Router();
 
@@ -5,9 +6,11 @@ const medicalReportController = require('./medical-report.controller');
 const medicalReportValidation = require("./medical-report.validation");
 const authMiddleware = require("../auth/auth.middleware");
 const validateRequest = require("../../common/middleware/validation.middleware");
+const { validateQueryFeatures } = require("../../common/middleware/query-validation.middleware");
 const Roles = require("../../common/enums/role.enum");
 
 router.use(authMiddleware.protect);
+
 
 // Create Medical Report (Doctor only)
 router.post(
@@ -18,7 +21,7 @@ router.post(
   medicalReportController.createMedicalReport
 );
 
-// Get My Medical Reports (Patient, Doctor, Admin, Receptionist)
+// CHANGED: Get My Medical Reports (Patient, Doctor, Admin, Receptionist)
 router.get(
   "/my",
   authMiddleware.restrictTo(
@@ -27,10 +30,12 @@ router.get(
     Roles.ADMIN,
     Roles.RECEPTIONIST
   ),
+  validateQueryFeatures,
+  validateRequest,
   medicalReportController.getMyMedicalReports
 );
 
-// Get All Medical Reports (Admin, Doctor, Receptionist)
+// CHANGED: Get All Medical Reports (Admin, Doctor, Receptionist)
 router.get(
   "/",
   authMiddleware.restrictTo(
@@ -38,10 +43,12 @@ router.get(
     Roles.DOCTOR,
     Roles.RECEPTIONIST
   ),
+  validateQueryFeatures,
+  validateRequest,
   medicalReportController.getAllMedicalReports
 );
 
-// Get Medical Reports By Appointment
+// CHANGED: Get Medical Reports By Appointment
 router.get(
   "/appointment/:appointmentId",
   authMiddleware.restrictTo(
@@ -51,9 +58,11 @@ router.get(
     Roles.PATIENT
   ),
   medicalReportValidation.appointmentIdValidation,
+  validateQueryFeatures,
   validateRequest,
   medicalReportController.getAllMedicalReportByAppointmentId
 );
+
 
 // Download Medical Report PDF (Patient, Doctor, Admin, Receptionist)
 router.get(

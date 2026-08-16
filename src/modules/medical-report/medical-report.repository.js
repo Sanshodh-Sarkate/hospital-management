@@ -25,60 +25,65 @@ const getMedicalReportById = async (reportId) => {
   });
 };
 
-// Get All Medical Reports
-const getAllMedicalReports = async () => {
-  return await medicalReportRepository.find({
-    relations: defaultRelations,
-    order: {
-      generatedAt: "DESC",
-    },
-  });
+// CHANGED
+const APIFeatures = require("../../common/utils/api-features.util");
+
+// CHANGED: Get All Medical Reports (With APIFeatures)
+const getAllMedicalReports = async (queryString = {}) => {
+  const features = new APIFeatures(queryString)
+    .filter(["patientId", "doctorId", "appointmentId"])
+    .search(["reportName", "reportType", "reportSummary", "labNotes"])
+    .sort(["generatedAt", "createdAt"], { field: "generatedAt", order: "DESC" })
+    .limitFields()
+    .paginate(10);
+
+  const findOptions = features.getFindOptions({}, defaultRelations);
+  const [reports, total] = await medicalReportRepository.findAndCount(findOptions);
+  return features.formatResponse(reports, total);
 };
 
-// Get Medical Reports by Appointment ID
-const getMedicalReportsByAppointmentId = async (appointmentId) => {
-  return await medicalReportRepository.find({
-    where: {
-      appointment: {
-        id: appointmentId,
-      },
-    },
-    relations: defaultRelations,
-    order: {
-      generatedAt: "DESC",
-    },
-  });
+// CHANGED: Get Medical Reports by Appointment ID (With APIFeatures)
+const getMedicalReportsByAppointmentId = async (appointmentId, queryString = {}) => {
+  const features = new APIFeatures(queryString)
+    .filter(["patientId", "doctorId"])
+    .search(["reportName", "reportType", "reportSummary"])
+    .sort(["generatedAt", "createdAt"], { field: "generatedAt", order: "DESC" })
+    .limitFields()
+    .paginate(10);
+
+  const findOptions = features.getFindOptions({ appointment: { id: appointmentId } }, defaultRelations);
+  const [reports, total] = await medicalReportRepository.findAndCount(findOptions);
+  return features.formatResponse(reports, total);
 };
 
-// Get Medical Reports by Patient ID
-const getMedicalReportsByPatientId = async (patientId) => {
-  return await medicalReportRepository.find({
-    where: {
-      patient: {
-        id: patientId,
-      },
-    },
-    relations: defaultRelations,
-    order: {
-      generatedAt: "DESC",
-    },
-  });
+// CHANGED: Get Medical Reports by Patient ID (With APIFeatures)
+const getMedicalReportsByPatientId = async (patientId, queryString = {}) => {
+  const features = new APIFeatures(queryString)
+    .filter(["doctorId", "appointmentId"])
+    .search(["reportName", "reportType", "reportSummary"])
+    .sort(["generatedAt", "createdAt"], { field: "generatedAt", order: "DESC" })
+    .limitFields()
+    .paginate(10);
+
+  const findOptions = features.getFindOptions({ patient: { id: patientId } }, defaultRelations);
+  const [reports, total] = await medicalReportRepository.findAndCount(findOptions);
+  return features.formatResponse(reports, total);
 };
 
-// Get Medical Reports by Doctor ID
-const getMedicalReportsByDoctorId = async (doctorId) => {
-  return await medicalReportRepository.find({
-    where: {
-      doctor: {
-        id: doctorId,
-      },
-    },
-    relations: defaultRelations,
-    order: {
-      generatedAt: "DESC",
-    },
-  });
+// CHANGED: Get Medical Reports by Doctor ID (With APIFeatures)
+const getMedicalReportsByDoctorId = async (doctorId, queryString = {}) => {
+  const features = new APIFeatures(queryString)
+    .filter(["patientId", "appointmentId"])
+    .search(["reportName", "reportType", "reportSummary"])
+    .sort(["generatedAt", "createdAt"], { field: "generatedAt", order: "DESC" })
+    .limitFields()
+    .paginate(10);
+
+  const findOptions = features.getFindOptions({ doctor: { id: doctorId } }, defaultRelations);
+  const [reports, total] = await medicalReportRepository.findAndCount(findOptions);
+  return features.formatResponse(reports, total);
 };
+
 
 // Create Medical Report
 const createMedicalReport = async (medicalReportData) => {

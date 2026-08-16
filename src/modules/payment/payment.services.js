@@ -134,8 +134,8 @@ const processPayment = async (billingId, paymentData, user) => {
   };
 };
 
-// 2. Get Payments by Billing ID
-const getPaymentsByBillingId = async (billingId, user) => {
+// CHANGED: 2. Get Payments by Billing ID (Supports APIFeatures)
+const getPaymentsByBillingId = async (billingId, user, queryString = {}) => {
   const billing = await billingRepository.getBillingById(billingId);
   if (!billing) {
     throw new AppError("Invoice/Bill was not found", 404);
@@ -148,8 +148,8 @@ const getPaymentsByBillingId = async (billingId, user) => {
     }
   }
 
-  const payments = await paymentRepository.getPaymentsByBillingId(billingId);
-  return payments.map((p) => ({
+  const result = await paymentRepository.getPaymentsByBillingId(billingId, queryString);
+  result.items = (result.items || []).map((p) => ({
     id: p.id,
     amount: p.amount,
     paymentMethod: p.paymentMethod,
@@ -157,7 +157,9 @@ const getPaymentsByBillingId = async (billingId, user) => {
     transactionId: p.transactionId,
     notes: p.notes,
   }));
+  return result;
 };
+
 
 // 3. Get Payment by ID
 const getPaymentById = async (paymentId, user) => {

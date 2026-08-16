@@ -66,9 +66,11 @@ module.exports.registerPatient =  async(patientData , logginUserId) =>{
     })
 }
 
-module.exports.getAllPatient =  async() => {
-    return  await patientRepository.getAllPatients();
-}
+// CHANGED: Get All Patients (Supports APIFeatures query parameters)
+module.exports.getAllPatient = async (queryString = {}) => {
+  return await patientRepository.getAllPatients(queryString);
+};
+
 
 module.exports.getPatientById =  async(patientId) => {
   const patient  = await patientRepository.getPatientById(patientId);

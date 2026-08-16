@@ -127,9 +127,11 @@ module.exports.createAppointment = async (appointmentData, user) => {
 
 
 // Retrive all apppintment 
-module.exports.getAllAppointments = async () => {
-  return await appointmentRepository.getAllAppointments();
+// CHANGED: Get All Appointments (With APIFeatures Query Parameters)
+module.exports.getAllAppointments = async (queryString = {}) => {
+  return await appointmentRepository.getAllAppointments(queryString);
 };
+
 
 
 module.exports.getAppointmentById = async (appointmentId) => {
@@ -520,14 +522,15 @@ module.exports.rescheduleAppointment = async (appointmentId, newAppointmentDateT
   );
 };
 
-module.exports.getMyAppointments = async (userId) => {
+// CHANGED: Get My Appointments (Patient Self-Service With APIFeatures Query Parameters)
+module.exports.getMyAppointments = async (userId, queryString = {}) => {
   const patient = await patientRepository.findPatientByUserId(userId);
   if (!patient) throw new AppError("patient profile was not found!", 404);
 
-  const appointments = await appointmentRepository.getAppointmentByPatientId(patient.id);
+  const result = await appointmentRepository.getAppointmentByPatientId(patient.id, queryString);
 
   // format data for patient view
-  const formattedAppointments = (appointments || []).map((apt) => ({
+  result.items = (result.items || []).map((apt) => ({
     id: apt.id,
     appointmentDateTime: apt.appointmentDateTime,
     appointmentType: apt.appointmentType,
@@ -544,8 +547,10 @@ module.exports.getMyAppointments = async (userId) => {
       department: apt.doctor?.department?.name || null
     }
   }));
-  return formattedAppointments;
-}
+
+  return result;
+};
+
 
 
 module.exports.completeAppointment = async (

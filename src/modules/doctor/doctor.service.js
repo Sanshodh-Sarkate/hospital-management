@@ -76,9 +76,33 @@ module.exports.createDoctor = async (doctorData, adminId) => {
 
 }
 
-module.exports.getAllDoctors = async () => {
-  return await doctorRepository.findAllDoctors();
+// CHANGED: Get All Doctors (Supports APIFeatures query parameters)
+module.exports.getAllDoctors = async (queryString = {}) => {
+  return await doctorRepository.findAllDoctors(queryString);
 };
+
+// CHANGED: Get Doctor Dashboard Metrics
+module.exports.getDoctorDashboardStats = async (user) => {
+  const doctor = await doctorRepository.findDoctorByUserId(user.id);
+  if (!doctor) throw new AppError("Doctor profile not found", 404);
+  return await doctorRepository.getDoctorDashboardMetrics(doctor.id);
+};
+
+// CHANGED: Get My Doctor Profile
+module.exports.getMyDoctorProfile = async (userId) => {
+  const doctor = await doctorRepository.findDoctorByUserId(userId);
+  if (!doctor) throw new AppError("Doctor profile not found", 404);
+  return doctor;
+};
+
+// CHANGED: Get My Doctor Appointments (With APIFeatures)
+module.exports.getMyDoctorAppointments = async (user, queryString = {}) => {
+  const doctor = await doctorRepository.findDoctorByUserId(user.id);
+  if (!doctor) throw new AppError("Doctor profile not found", 404);
+  return await doctorRepository.getDoctorAppointmentsByDoctorId(doctor.id, queryString);
+};
+
+
 
 module.exports.getDoctorById = async (doctorId) => {
 

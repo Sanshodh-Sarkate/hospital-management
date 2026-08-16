@@ -13,11 +13,16 @@ const router  =  express.Router();
 router.get('/me', authMiddleware.protect, authMiddleware.restrictTo("PATIENT"), patientController.getMyProfile);
 router.patch('/me', authMiddleware.protect, authMiddleware.restrictTo("PATIENT"), patientValidations.updatePatientValidation, validationRequest, patientController.updateMyProfile);
 
-// Patient Dashboard: View Own Appointments
+// CHANGED
+const { validateQueryFeatures } = require("../../common/middleware/query-validation.middleware");
+
+// Patient Dashboard: View Own Appointments (Supports APIFeatures query parameters)
 router.get(
   '/me/appointments',
   authMiddleware.protect,
   authMiddleware.restrictTo("PATIENT"),
+  validateQueryFeatures,
+  validationRequest,
   appointmentController.getMyAppointments
 );
 router.post('/booking/appointment' , 
@@ -28,7 +33,9 @@ router.post('/booking/appointment' ,
 
 
 router.post('/', authMiddleware.protect, authMiddleware.restrictTo("ADMIN", "RECEPTIONIST"), patientValidations.createPatientValidation, validationRequest, patientController.registerPatient);
-router.get('/', authMiddleware.protect, authMiddleware.restrictTo("ADMIN", "RECEPTIONIST"), patientController.getAllPatients);
+// CHANGED: Get All Patients (Supports APIFeatures query parameters)
+router.get('/', authMiddleware.protect, authMiddleware.restrictTo("ADMIN", "RECEPTIONIST"), validateQueryFeatures, validationRequest, patientController.getAllPatients);
+
 router.get('/:id', authMiddleware.protect, authMiddleware.restrictTo("ADMIN", "RECEPTIONIST"), patientController.getPatientById);
 router.patch('/:id', authMiddleware.protect, authMiddleware.restrictTo("ADMIN", "RECEPTIONIST", "PATIENT"), patientValidations.updatePatientValidation, validationRequest, patientController.updatePatient);
 router.delete('/:id', authMiddleware.protect, authMiddleware.restrictTo("ADMIN", "RECEPTIONIST"), patientController.deletePatient);

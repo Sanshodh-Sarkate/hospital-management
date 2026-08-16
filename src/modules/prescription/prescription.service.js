@@ -163,23 +163,26 @@ module.exports.createPrescription = async (prescriptionData, user) => {
 };
 
 
-module.exports.getPrescriptions = async (user) => {
-    let prescriptions = [];
+// CHANGED: Get All Prescriptions (Supports APIFeatures query parameters)
+module.exports.getPrescriptions = async (user, queryString = {}) => {
+    let result;
 
     if (user.role === Roles.ADMIN || user.role === Roles.RECEPTIONIST) {
-        prescriptions = await prescriptionRepository.getAllPrescriptions();
+        result = await prescriptionRepository.getAllPrescriptions(queryString);
     } else if (user.role === Roles.DOCTOR) {
         const doctor = await doctorRepository.findDoctorByUserId(user.id);
         if (!doctor) {
             throw new AppError("Doctor profile not found", 404);
         }
-        prescriptions = await prescriptionRepository.getPrescriptionsByDoctorId(doctor.id);
+        result = await prescriptionRepository.getPrescriptionsByDoctorId(doctor.id, queryString);
     } else {
         throw new AppError("You are not authorized to view prescriptions", 403);
     }
 
-    return prescriptions.map(formatPrescriptionForStaff);
+    result.items = (result.items || []).map(formatPrescriptionForStaff);
+    return result;
 };
+
 
 
 // get prescription based on the role   
@@ -302,7 +305,8 @@ module.exports.updatePrescription = async (
 };
 
 
-module.exports.getMyPrescriptions = async (userId) => {
+// CHANGED: Get My Prescriptions (Patient Self-Service With APIFeatures)
+module.exports.getMyPrescriptions = async (userId, queryString = {}) => {
     // Find Patient using authenticated User ID
     const patient = await patientRepository.findPatientByUserId(userId);
 
@@ -311,10 +315,11 @@ module.exports.getMyPrescriptions = async (userId) => {
     }
 
     // Get prescriptions belonging to the Patient
-    const prescriptions = await prescriptionRepository.getPrescriptionsByPatientId(patient.id);
-
-    return prescriptions.map(formatPrescriptionForPatient);
+    const result = await prescriptionRepository.getPrescriptionsByPatientId(patient.id, queryString);
+    result.items = (result.items || []).map(formatPrescriptionForPatient);
+    return result;
 };
+
 
 
 module.exports.deletePrescription = async (

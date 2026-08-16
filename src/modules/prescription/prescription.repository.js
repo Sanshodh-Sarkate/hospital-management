@@ -42,45 +42,51 @@ const getPrescriptionByAppointmentId = async (appointmentId) => {
   });
 };
 
-// Get All Prescriptions
-const getAllPrescriptions = async () => {
-  return await prescriptionRepository.find({
-    relations: defaultRelations,
-    order: {
-      createdAt: "DESC",
-    },
-  });
+// CHANGED
+const APIFeatures = require("../../common/utils/api-features.util");
+
+// CHANGED: Get All Prescriptions (With APIFeatures)
+const getAllPrescriptions = async (queryString = {}) => {
+  const features = new APIFeatures(queryString)
+    .filter(["patientId", "doctorId", "appointmentId"])
+    .search(["diagnosis", "notes", "advice"])
+    .sort(["createdAt", "diagnosis"], { field: "createdAt", order: "DESC" })
+    .limitFields()
+    .paginate(10);
+
+  const findOptions = features.getFindOptions({}, defaultRelations);
+  const [prescriptions, total] = await prescriptionRepository.findAndCount(findOptions);
+  return features.formatResponse(prescriptions, total);
 };
 
-// Get Prescriptions by Patient
-const getPrescriptionsByPatientId = async (patientId) => {
-  return await prescriptionRepository.find({
-    where: {
-      patient: {
-        id: patientId,
-      },
-    },
-    relations: defaultRelations,
-    order: {
-      createdAt: "DESC",
-    },
-  });
+// CHANGED: Get Prescriptions by Patient ID (With APIFeatures)
+const getPrescriptionsByPatientId = async (patientId, queryString = {}) => {
+  const features = new APIFeatures(queryString)
+    .filter(["doctorId", "appointmentId"])
+    .search(["diagnosis", "notes", "advice"])
+    .sort(["createdAt", "diagnosis"], { field: "createdAt", order: "DESC" })
+    .limitFields()
+    .paginate(10);
+
+  const findOptions = features.getFindOptions({ patient: { id: patientId } }, defaultRelations);
+  const [prescriptions, total] = await prescriptionRepository.findAndCount(findOptions);
+  return features.formatResponse(prescriptions, total);
 };
 
-// Get Prescriptions by Doctor
-const getPrescriptionsByDoctorId = async (doctorId) => {
-  return await prescriptionRepository.find({
-    where: {
-      doctor: {
-        id: doctorId,
-      },
-    },
-    relations: defaultRelations,
-    order: {
-      createdAt: "DESC",
-    },
-  });
+// CHANGED: Get Prescriptions by Doctor ID (With APIFeatures)
+const getPrescriptionsByDoctorId = async (doctorId, queryString = {}) => {
+  const features = new APIFeatures(queryString)
+    .filter(["patientId", "appointmentId"])
+    .search(["diagnosis", "notes", "advice"])
+    .sort(["createdAt", "diagnosis"], { field: "createdAt", order: "DESC" })
+    .limitFields()
+    .paginate(10);
+
+  const findOptions = features.getFindOptions({ doctor: { id: doctorId } }, defaultRelations);
+  const [prescriptions, total] = await prescriptionRepository.findAndCount(findOptions);
+  return features.formatResponse(prescriptions, total);
 };
+
 
 // Create Prescription (Transaction)
 const createPrescription = async (manager, prescriptionData) => {

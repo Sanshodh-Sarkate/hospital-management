@@ -1,3 +1,4 @@
+// CHANGED
 const express = require("express");
 const router = express.Router();
 
@@ -6,7 +7,9 @@ const prescriptionValidation = require("./prescription.validation");
 
 const authMiddleware = require("../auth/auth.middleware");
 const validationRequest = require("../../common/middleware/validation.middleware");
+const { validateQueryFeatures } = require("../../common/middleware/query-validation.middleware");
 const Roles = require("../../common/enums/role.enum");
+
 
 // Create Prescription (Doctor only)
 router.post(
@@ -18,13 +21,16 @@ router.post(
   prescriptionController.createPrescription
 );
 
-// Get My Prescriptions (Patient only - must come before /:id)
+// CHANGED: Get My Prescriptions (Patient only - must come before /:id)
 router.get(
   "/my",
   authMiddleware.protect,
   authMiddleware.restrictTo(Roles.PATIENT),
+  validateQueryFeatures,
+  validationRequest,
   prescriptionController.getMyPrescriptions
 );
+
 
 // Update Prescription Item (Medication - Doctor only)
 router.patch(
@@ -47,7 +53,7 @@ router.delete(
   prescriptionController.deletePrescriptionItem
 );
 
-// Get All Prescriptions (Admin, Doctor, Receptionist)
+// CHANGED: Get All Prescriptions (Admin, Doctor, Receptionist)
 router.get(
   "/",
   authMiddleware.protect,
@@ -56,8 +62,11 @@ router.get(
     Roles.DOCTOR,
     Roles.RECEPTIONIST
   ),
+  validateQueryFeatures,
+  validationRequest,
   prescriptionController.getPrescriptions
 );
+
 
 // Get Prescription By ID (Admin, Doctor, Receptionist, Patient)
 router.get(

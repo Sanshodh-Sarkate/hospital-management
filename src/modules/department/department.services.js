@@ -33,16 +33,11 @@ module.exports.createNewDepartment = async (userId, departmentData) => {
     return createDepartment;
 }
 
-module.exports.findAllDepartments = async () => {
-  return await departmentRepository.findAllDepartments({
-    where: {
-      isActive: true,
-    },
-    order: {
-      departmentName: "ASC",
-    },
-  });
+// CHANGED: Get All Departments (Supports APIFeatures query parameters)
+module.exports.findAllDepartments = async (queryString = {}) => {
+  return await departmentRepository.findAllDepartments(queryString);
 };
+
 
 
 module.exports.getDepartmentById  =  async(departmentId) => {

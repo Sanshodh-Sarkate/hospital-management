@@ -1,15 +1,18 @@
+// CHANGED
 const express = require("express");
 const router = express.Router();
 const notificationController = require("./notification.controller");
 const notificationValidation = require("./notification.validation");
 const authMiddleware = require("../auth/auth.middleware");
 const validateRequest = require("../../common/middleware/validation.middleware");
+const { validateQueryFeatures } = require("../../common/middleware/query-validation.middleware");
 
 // Require authentication for all notification routes
 router.use(authMiddleware.protect);
 
-// 1. Get My Notifications
-router.get("/", notificationController.getMyNotifications);
+// CHANGED: 1. Get My Notifications (Supports APIFeatures query parameters)
+router.get("/", validateQueryFeatures, validateRequest, notificationController.getMyNotifications);
+
 
 // 2. Get Unread Notification Count (MUST be registered BEFORE dynamic /:id routes!)
 router.get("/unread-count", notificationController.getUnreadCount);
