@@ -5,20 +5,23 @@ const  {registerValidation , loginValidation , forgotPasswordValidation , resetP
 const authMiddleware =  require('./auth.middleware')
 
 
-const router  =  express.Router();
+// CHANGED
+const router = express.Router();
 
-router.post('/register' , registerValidation , validationRequest , authController.userRegister);
-router.post('/login' ,loginValidation , validationRequest , authController.loginUser );
+router.post('/register', registerValidation, validationRequest, authController.userRegister);
+router.post('/login', loginValidation, validationRequest, authController.loginUser);
+router.post('/refresh-token', authController.refreshToken);
 router.get('/logout', authController.logoutUser);
-router.get('/me' , authMiddleware.protect , authController.profile  );
-router.patch('/change-password' , authMiddleware.protect ,  authController.changePassword)
-router.post('/forgot-password' ,forgotPasswordValidation , authController.forgotPassword)
+router.post('/logout', authController.logoutUser);
+router.get('/me', authMiddleware.protect, authController.profile);
+router.patch('/change-password', authMiddleware.protect, authController.changePassword);
+router.post('/forgot-password', forgotPasswordValidation, authController.forgotPassword);
 router.patch(
   "/reset-password/:token",
   resetPasswordValidation,
   validationRequest,
   authController.resetPassword
 );
-router.patch('/update-profile' ,  authMiddleware.protect ,updateProfileValidation, authController.updateProfile)
+router.patch('/update-profile', authMiddleware.protect, updateProfileValidation, authController.updateProfile);
 
-module.exports =  router;
+module.exports = router;

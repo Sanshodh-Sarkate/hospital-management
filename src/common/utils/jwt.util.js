@@ -1,14 +1,54 @@
-const jwt  =  require("jsonwebtoken");
+// CHANGED
+const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 
-const  JWT_SECRET =  process.env.JWT_SECRET;
-const JWT_EXPIRES_IN  =  process.env.JWT_EXPIRES_IN || "7d";
+const getAccessSecret = () => process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET;
+const getAccessExpiresIn = () => process.env.JWT_ACCESS_EXPIRES_IN || "15m";
 
-module.exports.generateToken = (payload) => {
-    return jwt.sign(payload , JWT_SECRET , {
-        expiresIn:  JWT_EXPIRES_IN
-    });
+const getRefreshSecret = () => process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET;
+const getRefreshExpiresIn = () => process.env.JWT_REFRESH_EXPIRES_IN || "7d";
+
+const generateAccessToken = (payload) => {
+  return jwt.sign(
+    { ...payload, tokenType: 'access', jti: crypto.randomBytes(16).toString('hex') },
+    getAccessSecret(),
+    { expiresIn: getAccessExpiresIn() }
+  );
 };
 
-const verifyToken = (token) => {
-  return jwt.verify(token, JWT_SECRET);
+const generateRefreshToken = (payload) => {
+  return jwt.sign(
+    { ...payload, tokenType: 'refresh', jti: crypto.randomBytes(16).toString('hex') },
+    getRefreshSecret(),
+    { expiresIn: getRefreshExpiresIn() }
+  );
 };
+
+
+const verifyAccessToken = (token) => {
+  return jwt.verify(token, getAccessSecret());
+};
+
+const verifyRefreshToken = (token) => {
+  return jwt.verify(token, getRefreshSecret());
+};
+
+const hashRefreshToken = (refreshToken) => {
+  if (!refreshToken) return null;
+  return crypto.createHash("sha256").update(refreshToken).digest("hex");
+};
+
+// Legacy backward compatibility alias
+const generateToken = (payload) => generateAccessToken(payload);
+const verifyToken = (token) => verifyAccessToken(token);
+
+module.exports = {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyAccessToken,
+  verifyRefreshToken,
+  hashRefreshToken,
+  generateToken,
+  verifyToken,
+};
+

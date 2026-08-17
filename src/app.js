@@ -3,6 +3,8 @@ const path   =  require("path")
 const authRoute = require('./modules/auth/auth.routes')
 const errorMiddleware = require('./common/middleware/error.middleware');
 const  departmentRoutes  = require('./modules/department/department.routes');
+const adminRoutes = require("./modules/admin/admin.routes");
+
 const  doctorRoutes =  require('./modules/doctor/doctor.routes')
 const  patientRoutes =  require('./modules/patient/patient.routes');
 const receptionistRoutes =  require("./modules/receptionist/receptionist.routes");
@@ -33,7 +35,9 @@ app.use(express.json());
 //     res.send("hello patien")
 // })
 
+
 app.use('/api/auth' ,authRoute )
+app.use('/api/admin', adminRoutes);
 app.use('/api/department' , departmentRoutes)
 app.use('/api/doctor' ,  doctorRoutes)
 app.use('/api/patient'  , patientRoutes)
@@ -44,6 +48,7 @@ app.use('/api/medical-reports' , medicalReportRoutes  )
 app.use("/api/billing", billingRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/notifications", notificationRoutes);
+
 
 
 

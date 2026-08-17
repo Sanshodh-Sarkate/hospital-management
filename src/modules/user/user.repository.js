@@ -110,6 +110,23 @@ const findUsersByRole = async (role) => {
 };
 
 
+// CHANGED
+const findUserByIdWithRefreshToken = async (id) => {
+  return await userRepository.findOne({
+    where: { id },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      role: true,
+      isActive: true,
+      refreshTokenHash: true,
+      passwordChangedAt: true,
+    },
+  });
+};
+
 module.exports = {
   findUserByEmail,
   findUserById,
@@ -123,4 +140,7 @@ module.exports = {
   createNewUserWithTransaction,
   updateUserWithTransaction,
   findUsersByRole,
-};
+  // CHANGED
+  findUserByIdWithRefreshToken,
+};
+
