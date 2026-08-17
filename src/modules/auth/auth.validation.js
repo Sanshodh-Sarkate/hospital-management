@@ -8,14 +8,14 @@ const registerValidation = [
     .notEmpty()
     .withMessage("First name is required")
     .isLength({ min: 2, max: 50 })
-    .withMessage("First name must be between 2 and 50 characters"),
+    .withMessage("First name must be at least 2 characters"),
 
   body("lastName")
     .trim()
     .notEmpty() 
     .withMessage("Last name is required")
     .isLength({ min: 2, max: 50 })
-    .withMessage("Last name must be between 2 and 50 characters"),
+    .withMessage("Last name must be at least 2 characters"),
 
   body("email")
     .trim()
@@ -41,8 +41,8 @@ const registerValidation = [
     .trim()
     .notEmpty()
     .withMessage("Phone number is required")
-    .isLength({ min: 10, max: 20 })
-    .withMessage("Phone number must be between 10 and 20 characters"),
+    .isLength({ min: 10, max: 10 })
+    .withMessage("Phone number must be exactly 10 digits"),
 ];
 
 
@@ -93,15 +93,16 @@ const updateProfileValidation = [
     .notEmpty()
     .withMessage("First name is required")
     .isLength({ min: 2, max: 50 })
-    .withMessage("First name must be between 2 and 50 characters"),
+    .withMessage("First name must be at least 2 characters"),
 
   body("lastName")
     .trim()
     .notEmpty() 
     .withMessage("Last name is required")
     .isLength({ min: 2, max: 50 })
-    .withMessage("Last name must be between 2 and 50 characters"),
+    .withMessage("Last name must be at least 2 characters"),
 ]
+
 
 module.exports = {
   registerValidation,

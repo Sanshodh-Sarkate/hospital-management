@@ -1,4 +1,3 @@
-// CHANGED
 const express = require("express");
 const receptionistController = require("./receptionist.controller");
 const validationRequest = require("../../common/middleware/validation.middleware");
@@ -22,7 +21,7 @@ router.get(
   receptionistController.getReceptionistDashboard
 );
 
-// CHANGED: Get All Receptionists (Supports APIFeatures query parameters)
+// Get All Receptionists (Supports APIFeatures query parameters)
 router.get('/' ,  authMiddleware.protect ,  authMiddleware.restrictTo("ADMIN") , validateQueryFeatures, validationRequest, receptionistController.getAllReceptionists);
 
 

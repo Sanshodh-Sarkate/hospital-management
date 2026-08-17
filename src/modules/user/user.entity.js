@@ -79,8 +79,8 @@ columns: {
     type: "timestamp",
     nullable: true,
 },
-    // CHANGED
     refreshTokenHash: {
+
       name: "refresh_token_hash",
       type: "varchar",
       length: 255,
