@@ -1,4 +1,4 @@
-// CHANGED
+//
 const authService = require('./auth.service');
 const asyncHandler = require('../../common/utils/async-handler');
 const { sendSuccess } = require('../../common/utils/response.util');
@@ -63,7 +63,7 @@ module.exports.loginUser = asyncHandler(async (req, res, next) => {
   return sendSuccess(res, 200, "User logged in successfully", responseData);
 });
 
-// CHANGED: Refresh Token Controller
+//: Refresh Token Controller
 module.exports.refreshToken = asyncHandler(async (req, res, next) => {
   const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
 
@@ -84,7 +84,7 @@ module.exports.refreshToken = asyncHandler(async (req, res, next) => {
   return sendSuccess(res, 200, "Access token refreshed successfully", responseData);
 });
 
-// CHANGED: Logout Controller
+//: Logout Controller
 module.exports.logoutUser = asyncHandler(async (req, res, next) => {
   const userId = req.user?.id;
   await authService.logoutUser(userId);
@@ -102,7 +102,7 @@ module.exports.profile = asyncHandler(async (req, res, next) => {
 module.exports.changePassword = asyncHandler(async (req, res, next) => {
   console.log(req.user.id);
   const data = await authService.changePassword(req.user, req.body);
-  
+
   clearRefreshTokenCookie(res);
 
   return sendSuccess(res, 200, "Password changed successfully", data);
@@ -134,4 +134,3 @@ module.exports.updateProfile = asyncHandler(async (req, res, next) => {
 
 
 
- 

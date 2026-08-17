@@ -1,22 +1,22 @@
 const departmentRepository = require('../department/department.repository');
-const  filterObject  = require('../../common/utils/filter-object.util')
-const AppError  =  require('../../common/errors/app.error')
+const filterObject = require('../../common/utils/filter-object.util')
+const AppError = require('../../common/errors/app.error')
 
 
 module.exports.createNewDepartment = async (userId, departmentData) => {
 
-    // 1. Check duplicate    
-    const existingDepartment = await departmentRepository.findDepartmentByName(departmentData.departmentName);
-    if (existingDepartment) {
-        throw new AppError(
-            "Department already exists",
-            409
-        );
-    }
+  // 1. Check duplicate    
+  const existingDepartment = await departmentRepository.findDepartmentByName(departmentData.departmentName);
+  if (existingDepartment) {
+    throw new AppError(
+      "Department already exists",
+      409
+    );
+  }
 
 
-    // 2. Create department
-    const filteredData = filterObject(
+  // 2. Create department
+  const filteredData = filterObject(
     departmentData,
     "departmentName",
     "description",
@@ -24,50 +24,50 @@ module.exports.createNewDepartment = async (userId, departmentData) => {
     "defaultConsultationFee",
     "isActive"
   );
-  filteredData.createdBy =  userId
+  filteredData.createdBy = userId
 
 
 
-    const createDepartment = await departmentRepository.createDepartment(filteredData)
+  const createDepartment = await departmentRepository.createDepartment(filteredData)
 
-    return createDepartment;
+  return createDepartment;
 }
 
-// CHANGED: Get All Departments (Supports APIFeatures query parameters)
+//: Get All Departments (Supports APIFeatures query parameters)
 module.exports.findAllDepartments = async (queryString = {}) => {
   return await departmentRepository.findAllDepartments(queryString);
 };
 
 
 
-module.exports.getDepartmentById  =  async(departmentId) => {
-  const department =  await departmentRepository.findDepartmentById(departmentId);
+module.exports.getDepartmentById = async (departmentId) => {
+  const department = await departmentRepository.findDepartmentById(departmentId);
   if (!department) {
     throw new AppError("Department not found", 404);
   }
 
 
 
-  return  department ;
+  return department;
 }
 
-module.exports.updateDepartment = async(userId  , departmentId  , updatedData) => {
-    // 1. find department  
-   const  department  =  await  departmentRepository.findDepartmentById(departmentId);
-    if (!department) {
+module.exports.updateDepartment = async (userId, departmentId, updatedData) => {
+  // 1. find department  
+  const department = await departmentRepository.findDepartmentById(departmentId);
+  if (!department) {
     throw new AppError("Department not found", 404);
   }
 
   // 2. Check duplicate name (only if name is being updated)
-  if(updatedData.departmentName && updatedData.departmentName !== department.departmentName){
-    const existingDepartment =  await departmentRepository.findDepartmentByName(updatedData.departmentName);
+  if (updatedData.departmentName && updatedData.departmentName !== department.departmentName) {
+    const existingDepartment = await departmentRepository.findDepartmentByName(updatedData.departmentName);
     if (existingDepartment) {
       throw new AppError("Department already exists", 409);
     }
 
   }
 
-   // 3. Allow only valid fields
+  // 3. Allow only valid fields
   const filteredData = filterObject(
     updatedData,
     "departmentName",
@@ -80,7 +80,7 @@ module.exports.updateDepartment = async(userId  , departmentId  , updatedData) =
   // 4. Add audit field
   filteredData.updatedBy = userId;
 
-    // 5. Update
+  // 5. Update
   const updatedDepartment =
     await departmentRepository.updateDepartment(
       departmentId,

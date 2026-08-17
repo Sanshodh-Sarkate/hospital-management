@@ -19,10 +19,10 @@ const registerReceptionist = async (manager, receptionistData) => {
 };
 
 
-// CHANGED
+//
 const APIFeatures = require("../../common/utils/api-features.util");
 
-// CHANGED: Get All Receptionists (With APIFeatures Query Builder)
+//: Get All Receptionists (With APIFeatures Query Builder)
 const getAllReceptionist = async (queryString = {}) => {
   const features = new APIFeatures(queryString)
     .filter(["shift", "isActive"])

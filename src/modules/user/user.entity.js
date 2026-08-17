@@ -8,12 +8,12 @@ const { type } = require("node:os");
 
 const UserEntity = new EntitySchema({
 
-name: "User",
-tableName: "users",
+  name: "User",
+  tableName: "users",
 
-columns: {
-  ...BaseEntity,
-  
+  columns: {
+    ...BaseEntity,
+
     firstName: {
       name: "first_name",
       type: "varchar",
@@ -75,11 +75,11 @@ columns: {
       nullable: true,
     },
     passwordChangedAt: {
-    name: "password_changed_at",
-    type: "timestamp",
-    nullable: true,
-},
-    // CHANGED
+      name: "password_changed_at",
+      type: "timestamp",
+      nullable: true,
+    },
+    //
     refreshTokenHash: {
       name: "refresh_token_hash",
       type: "varchar",

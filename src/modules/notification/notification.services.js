@@ -42,7 +42,7 @@ const createNotification = async (notificationData) => {
   return formatNotification(savedNotification);
 };
 
-// CHANGED: 2. Get My Notifications (Authenticated User with APIFeatures)
+//: 2. Get My Notifications (Authenticated User with APIFeatures)
 const getMyNotifications = async (user, queryString = {}) => {
   const result = await notificationRepository.getNotificationsByRecipientId(user.id, queryString);
   result.items = (result.items || []).map(formatNotification);

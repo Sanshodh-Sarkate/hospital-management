@@ -1,4 +1,4 @@
-// CHANGED
+//
 const express = require("express");
 
 const appointmentController = require("./appointments.controller");
@@ -22,7 +22,7 @@ router.post(
   appointmentController.bookAppointment
 );
 
-// CHANGED: Get All Appointments (Supports APIFeatures query parameters)
+//: Get All Appointments (Supports APIFeatures query parameters)
 router.get('/',
   authMiddleware.protect,
   authMiddleware.restrictTo("ADMIN", "RECEPTIONIST"),
@@ -60,12 +60,12 @@ router.delete(
 
 
 // Confirm Appointment
-// Receptionist
+// Receptionist, Patient, Admin
 router.patch(
   "/:id/confirm",
   authMiddleware.protect,
   authMiddleware.restrictTo(
-    "RECEPTIONIST"
+    "RECEPTIONIST", "PATIENT", "ADMIN"
   ),
   appointmentController.confirmAppointment
 );
@@ -89,7 +89,7 @@ router.patch(
   "/:id/cancel",
   authMiddleware.protect,
   authMiddleware.restrictTo(
-    "RECEPTIONIST" , "PATIENT" , "ADMIN"
+    "RECEPTIONIST", "PATIENT", "ADMIN"
   ),
   appointmentValidation.cancelAppointmentValidation,
   validationRequest,

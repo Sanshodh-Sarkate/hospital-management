@@ -1,4 +1,4 @@
-// CHANGED
+//
 const express = require("express");
 const router = express.Router();
 
@@ -21,7 +21,7 @@ router.post(
   prescriptionController.createPrescription
 );
 
-// CHANGED: Get My Prescriptions (Patient only - must come before /:id)
+//: Get My Prescriptions (Patient only - must come before /:id)
 router.get(
   "/my",
   authMiddleware.protect,
@@ -53,7 +53,7 @@ router.delete(
   prescriptionController.deletePrescriptionItem
 );
 
-// CHANGED: Get All Prescriptions (Admin, Doctor, Receptionist)
+//: Get All Prescriptions (Admin, Doctor, Receptionist)
 router.get(
   "/",
   authMiddleware.protect,

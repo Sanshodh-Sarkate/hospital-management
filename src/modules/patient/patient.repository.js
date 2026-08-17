@@ -1,19 +1,19 @@
-const AppDataSource  =   require('../../config/db');
-const  Patient  =  require('./patient.entity');
+const AppDataSource = require('../../config/db');
+const Patient = require('./patient.entity');
 
-const patientRepository  =   AppDataSource.getRepository(Patient);
+const patientRepository = AppDataSource.getRepository(Patient);
 
 // Create Patient  use Transaction
-const createPatient = async(manager, patientData) => {
-    const repository = manager.getRepository(Patient);
-    const createNewPatient = repository.create(patientData);
-    return await repository.save(createNewPatient);
+const createPatient = async (manager, patientData) => {
+  const repository = manager.getRepository(Patient);
+  const createNewPatient = repository.create(patientData);
+  return await repository.save(createNewPatient);
 };
 
-// CHANGED
+//
 const APIFeatures = require("../../common/utils/api-features.util");
 
-// CHANGED: Get All Patients (With APIFeatures Query Builder)
+//: Get All Patients (With APIFeatures Query Builder)
 const getAllPatients = async (queryString = {}) => {
   const features = new APIFeatures(queryString)
     .filter(["gender", "bloodGroup", "city", "state", "country", "isActive"])
@@ -33,15 +33,15 @@ const getAllPatients = async (queryString = {}) => {
 
 
 
-const getPatientById = async(patientId) => {
-    return  await patientRepository.findOne({
-        where: {
-            id  : patientId
-        } , 
-        relations: {
-            user :  true
-        }
-    })
+const getPatientById = async (patientId) => {
+  return await patientRepository.findOne({
+    where: {
+      id: patientId
+    },
+    relations: {
+      user: true
+    }
+  })
 }
 const findPatientByUserId = async (
   userId
@@ -59,17 +59,17 @@ const findPatientByUserId = async (
   });
 
 };
-const updatePatientWithTransaction = async(manager,patientId,updateData) => {
-    const repository  =  manager.getRepository(Patient);
-    await repository.update(patientId , updateData)
-    return await repository.findOne({
-        where: {
-            id: patientId
-        },
-        relations: {
-            user: true
-        },
-    });
+const updatePatientWithTransaction = async (manager, patientId, updateData) => {
+  const repository = manager.getRepository(Patient);
+  await repository.update(patientId, updateData)
+  return await repository.findOne({
+    where: {
+      id: patientId
+    },
+    relations: {
+      user: true
+    },
+  });
 }
 
 const deletePatient = async (
@@ -88,10 +88,10 @@ const deletePatient = async (
 
 
 module.exports = {
-    createPatient,
-    getAllPatients,
-    getPatientById,
-    findPatientByUserId,
-    updatePatientWithTransaction,
-    deletePatient
+  createPatient,
+  getAllPatients,
+  getPatientById,
+  findPatientByUserId,
+  updatePatientWithTransaction,
+  deletePatient
 }

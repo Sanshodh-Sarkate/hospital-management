@@ -131,7 +131,7 @@ module.exports.createPrescription = async (prescriptionData, user) => {
         prescriptionInfo.patient = appointment.patient;
         prescriptionInfo.createdBy = { id: user.id };
         prescriptionInfo.updatedBy = { id: user.id };
- 
+
         const prescription = await prescriptionRepository.createPrescription(manager, prescriptionInfo);
 
         // Prepare medicationData   
@@ -163,7 +163,7 @@ module.exports.createPrescription = async (prescriptionData, user) => {
 };
 
 
-// CHANGED: Get All Prescriptions (Supports APIFeatures query parameters)
+//: Get All Prescriptions (Supports APIFeatures query parameters)
 module.exports.getPrescriptions = async (user, queryString = {}) => {
     let result;
 
@@ -305,7 +305,7 @@ module.exports.updatePrescription = async (
 };
 
 
-// CHANGED: Get My Prescriptions (Patient Self-Service With APIFeatures)
+//: Get My Prescriptions (Patient Self-Service With APIFeatures)
 module.exports.getMyPrescriptions = async (userId, queryString = {}) => {
     // Find Patient using authenticated User ID
     const patient = await patientRepository.findPatientByUserId(userId);

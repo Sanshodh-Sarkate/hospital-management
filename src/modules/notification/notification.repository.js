@@ -1,4 +1,4 @@
-// CHANGED
+//
 const AppDataSource = require("../../config/db");
 const Notification = require("./notification.entity");
 const APIFeatures = require("../../common/utils/api-features.util");
@@ -12,7 +12,7 @@ const createNotification = async (notficationData) => {
   return await notificationRepository.save(notification);
 }
 
-// CHANGED: 2. Get Notifications by Recipient ID (With APIFeatures Query Builder)
+//: 2. Get Notifications by Recipient ID (With APIFeatures Query Builder)
 const getNotificationsByRecipientId = async (recipientId, queryString = {}) => {
   const features = new APIFeatures(queryString)
     .filter(["isRead", "type"])

@@ -1,4 +1,4 @@
-// CHANGED
+//
 const asyncHandler = require("../../common/utils/async-handler");
 const paymentServices = require("./payment.services");
 const { sendSuccess, sendPaginated } = require("../../common/utils/response.util");
@@ -13,7 +13,7 @@ module.exports.processPayment = asyncHandler(async (req, res, next) => {
   return sendSuccess(res, 201, "Payment processed successfully", result);
 });
 
-// CHANGED: 2. Get Payments by Billing ID (Admin, Receptionist, Patient Supports APIFeatures)
+//: 2. Get Payments by Billing ID (Admin, Receptionist, Patient Supports APIFeatures)
 module.exports.getPaymentsByBillingId = asyncHandler(async (req, res, next) => {
   const paginatedData = await paymentServices.getPaymentsByBillingId(
     req.params.billingId,

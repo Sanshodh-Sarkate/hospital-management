@@ -8,18 +8,18 @@ const paymentRepository = AppDataSource.getRepository(Payment);
 
 
 // billingId, type, amount, paymentDate, paymentMethod, paymentStatus, transactionId, description
-const  defaultRelations = {
-    patient :  {
-        user: true  
-    },
-    appointment : {
-       
-        doctor: {
-            user: true 
-        }
-    },
-    billingItems: true,
-    payments: true
+const defaultRelations = {
+  patient: {
+    user: true
+  },
+  appointment: {
+
+    doctor: {
+      user: true
+    }
+  },
+  billingItems: true,
+  payments: true
 
 };
 
@@ -31,17 +31,17 @@ const createBilling = async (manager, billingData) => {
 };
 
 // 2. Create Billing Items
-const  createBillingItems  =  async(manager , billingItemData) => {
-    const  repository  =  manager ? manager.getRepository(BillingItem) : billingItemRepository ;
-    const newItems =  repository.create(billingItemData);
-    return  await repository.save(newItems);
+const createBillingItems = async (manager, billingItemData) => {
+  const repository = manager ? manager.getRepository(BillingItem) : billingItemRepository;
+  const newItems = repository.create(billingItemData);
+  return await repository.save(newItems);
 }
 
 // 3. Create Payment
-const createPayment =  async (manager ,  paymentData) => {
-    const  repository  =  manager ? manager.getRepository(Payment) : paymentRepository;
-    const newPayment  =  repository.create(paymentData) ;
-    return await  repository.save(newPayment);
+const createPayment = async (manager, paymentData) => {
+  const repository = manager ? manager.getRepository(Payment) : paymentRepository;
+  const newPayment = repository.create(paymentData);
+  return await repository.save(newPayment);
 }
 
 // 4. Get Billing By ID
@@ -63,10 +63,10 @@ const getBillingByAppointmentId = async (appointmentId) => {
 };
 
 
-// CHANGED
+//
 const APIFeatures = require("../../common/utils/api-features.util");
 
-// CHANGED: 6. Get All Billings (With APIFeatures Query Builder)
+//: 6. Get All Billings (With APIFeatures Query Builder)
 const getAllBillings = async (queryString = {}) => {
   const features = new APIFeatures(queryString)
     .filter(["paymentStatus", "patientId", "appointmentId"])
@@ -80,7 +80,7 @@ const getAllBillings = async (queryString = {}) => {
   return features.formatResponse(billings, total);
 };
 
-// CHANGED: 7. Get Billings By Patient ID (Patient Dashboard With APIFeatures Scope)
+//: 7. Get Billings By Patient ID (Patient Dashboard With APIFeatures Scope)
 const getBillingsByPatientId = async (patientId, queryString = {}) => {
   const features = new APIFeatures(queryString)
     .filter(["paymentStatus", "appointmentId"])
@@ -99,7 +99,7 @@ const getBillingsByPatientId = async (patientId, queryString = {}) => {
 const updateBilling = async (billingId, updateData, manager) => {
   const repository = manager ? manager.getRepository(Billing) : billingRepository;
   await repository.update(billingId, updateData);
-  
+
   return await repository.findOne({
     where: { id: billingId },
     relations: defaultRelations,

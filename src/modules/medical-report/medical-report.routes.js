@@ -1,4 +1,4 @@
-// CHANGED
+//
 const express = require("express");
 const router = express.Router();
 
@@ -21,7 +21,7 @@ router.post(
   medicalReportController.createMedicalReport
 );
 
-// CHANGED: Get My Medical Reports (Patient, Doctor, Admin, Receptionist)
+//: Get My Medical Reports (Patient, Doctor, Admin, Receptionist)
 router.get(
   "/my",
   authMiddleware.restrictTo(
@@ -35,7 +35,7 @@ router.get(
   medicalReportController.getMyMedicalReports
 );
 
-// CHANGED: Get All Medical Reports (Admin, Doctor, Receptionist)
+//: Get All Medical Reports (Admin, Doctor, Receptionist)
 router.get(
   "/",
   authMiddleware.restrictTo(
@@ -48,7 +48,7 @@ router.get(
   medicalReportController.getAllMedicalReports
 );
 
-// CHANGED: Get Medical Reports By Appointment
+//: Get Medical Reports By Appointment
 router.get(
   "/appointment/:appointmentId",
   authMiddleware.restrictTo(

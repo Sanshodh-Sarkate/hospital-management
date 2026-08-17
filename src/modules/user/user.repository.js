@@ -110,7 +110,7 @@ const findUsersByRole = async (role) => {
 };
 
 
-// CHANGED
+//
 const findUserByIdWithRefreshToken = async (id) => {
   return await userRepository.findOne({
     where: { id },
@@ -140,7 +140,7 @@ module.exports = {
   createNewUserWithTransaction,
   updateUserWithTransaction,
   findUsersByRole,
-  // CHANGED
+  //
   findUserByIdWithRefreshToken,
 };
 

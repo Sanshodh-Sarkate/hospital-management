@@ -1,4 +1,4 @@
-// CHANGED
+//
 const express = require("express");
 const router = express.Router();
 const paymentController = require("./payment.controller");
@@ -19,7 +19,7 @@ router.post(
   paymentController.processPayment
 );
 
-// CHANGED: 2. Get Payments by Billing ID (Admin, Receptionist, Patient Supports APIFeatures)
+//: 2. Get Payments by Billing ID (Admin, Receptionist, Patient Supports APIFeatures)
 router.get(
   "/billings/:billingId",
   authMiddleware.restrictTo(Roles.ADMIN, Roles.RECEPTIONIST, Roles.PATIENT),

@@ -84,7 +84,7 @@ module.exports.CreateReceptionist = async (receptionistUSerData, adminId) => {
 }
 
 
-// CHANGED: Get All Receptionists (Supports APIFeatures query parameters)
+//: Get All Receptionists (Supports APIFeatures query parameters)
 module.exports.getAllReceptionist = async (queryString = {}) => {
   return await receptionistRepository.getAllReceptionist(queryString);
 };
@@ -189,7 +189,7 @@ module.exports.deleteReceptionist = async (receptionistId, deletedBy) => {
     // Deactivate associated User
     await userRepository.updateUserWithTransaction(
       manager,
-      receptionist.user.id, 
+      receptionist.user.id,
       {
         isActive: false,
       }

@@ -2,9 +2,9 @@ const AppDataSource = require("../../config/db");
 const billingRepository = require("./billing-repository");
 const appointmentRepository = require("../appointments/appointment.repository");
 const patientRepository = require("../patient/patient.repository");
-const medicalReportRepository  =  require('../medical-report/medical-report.repository')
+const medicalReportRepository = require('../medical-report/medical-report.repository')
 const AppError = require("../../common/errors/app.error");
-const filterObject   =  require("../../common/utils/filter-object.util")
+const filterObject = require("../../common/utils/filter-object.util")
 const Roles = require("../../common/enums/role.enum");
 const BillingStatus = require("../../common/enums/billing-status.enum");
 const notificationServices = require("../notification/notification.services");
@@ -49,29 +49,29 @@ const formatBilling = (billing) => {
     createdAt: billing.createdAt,
     patient: billing.patient
       ? {
-          id: billing.patient.id,
-          name: billing.patient.user
-            ? `${billing.patient.user.firstName} ${billing.patient.user.lastName}`
-            : "N/A",
-          gender: billing.patient.gender,
-          dateOfBirth: billing.patient.dateOfBirth,
-          phoneNumber: billing.patient.user?.phoneNumber || "N/A",
-        }
+        id: billing.patient.id,
+        name: billing.patient.user
+          ? `${billing.patient.user.firstName} ${billing.patient.user.lastName}`
+          : "N/A",
+        gender: billing.patient.gender,
+        dateOfBirth: billing.patient.dateOfBirth,
+        phoneNumber: billing.patient.user?.phoneNumber || "N/A",
+      }
       : null,
     doctor: billing.appointment?.doctor
       ? {
-          id: billing.appointment.doctor.id,
-          name: billing.appointment.doctor.user
-            ? `Dr. ${billing.appointment.doctor.user.firstName} ${billing.appointment.doctor.user.lastName}`
-            : "N/A",
-          specialization: billing.appointment.doctor.specialization,
-        }
+        id: billing.appointment.doctor.id,
+        name: billing.appointment.doctor.user
+          ? `Dr. ${billing.appointment.doctor.user.firstName} ${billing.appointment.doctor.user.lastName}`
+          : "N/A",
+        specialization: billing.appointment.doctor.specialization,
+      }
       : null,
     appointment: billing.appointment
       ? {
-          id: billing.appointment.id,
-          appointmentDateTime: billing.appointment.appointmentDateTime,
-        }
+        id: billing.appointment.id,
+        appointmentDateTime: billing.appointment.appointmentDateTime,
+      }
       : null,
     billingItems: (billing.billingItems || []).map((item) => ({
       id: item.id,
@@ -95,23 +95,23 @@ const formatBilling = (billing) => {
 
 // Automatic Bill Generation on Appointment Completion
 module.exports.generateBillingForAppointment = async (appointmentId, manager) => {
-      //  Check duplicate billing
-      const existingBill =  await billingRepository.getBillingByAppointmentId(appointmentId) ;
-      if (existingBill) return existingBill;
+  //  Check duplicate billing
+  const existingBill = await billingRepository.getBillingByAppointmentId(appointmentId);
+  if (existingBill) return existingBill;
 
-     // 2. Fetch appointment with Doctor & Patient relations
-     const appointment =  await appointmentRepository.getAppointmentById(appointmentId);
-       if (!appointment) {
+  // 2. Fetch appointment with Doctor & Patient relations
+  const appointment = await appointmentRepository.getAppointmentById(appointmentId);
+  if (!appointment) {
     throw new AppError("Appointment was not found for billing", 404);
   }
 
 
-     // 3. Fetch related Medical Reports
-   // CHANGED: Unwrap items array from paginated APIFeatures response object
-   const reportsResult = await medicalReportRepository.getMedicalReportsByAppointmentId(appointmentId);
-   const medicalReports = Array.isArray(reportsResult) ? reportsResult : (reportsResult?.items || []);
+  // 3. Fetch related Medical Reports
+  //: Unwrap items array from paginated APIFeatures response object
+  const reportsResult = await medicalReportRepository.getMedicalReportsByAppointmentId(appointmentId);
+  const medicalReports = Array.isArray(reportsResult) ? reportsResult : (reportsResult?.items || []);
 
-   const billingItems  = [] ;
+  const billingItems = [];
 
   // Item 1: Doctor Consultation Fee
   const consultationFee = Number(appointment.doctor?.consultationFee || 0);
@@ -123,7 +123,7 @@ module.exports.generateBillingForAppointment = async (appointmentId, manager) =>
     totalPrice: consultationFee,
   });
 
-  
+
   // Items 2..N: Medical Report Charges (where reportCharge > 0)
   for (const report of medicalReports) {
 
@@ -149,8 +149,8 @@ module.exports.generateBillingForAppointment = async (appointmentId, manager) =>
   const finalAmount = totalAmount - discountAmount - insuranceCoverageAmount;
   const paymentStatus = BillingStatus.UNPAID;
 
- const billNumber = generateBillNumber();
-const newBillingData = {
+  const billNumber = generateBillNumber();
+  const newBillingData = {
     billNumber,
     totalAmount,
     discountAmount,
@@ -163,28 +163,28 @@ const newBillingData = {
     patient: { id: appointment.patient.id },
   };
 
-   const  saveBilling  = await  billingRepository.createBilling(manager , newBillingData);
+  const saveBilling = await billingRepository.createBilling(manager, newBillingData);
 
-   // link and save billingItems  
-   const  itemsTosave  =  billingItems.map((item) => ({
-   ...item,
-   billing: { id :  saveBilling.id}
-   }))
+  // link and save billingItems  
+  const itemsTosave = billingItems.map((item) => ({
+    ...item,
+    billing: { id: saveBilling.id }
+  }))
 
-   await billingRepository.createBillingItems(manager , itemsTosave);
-      
-   // 🔔 Auto-notify Patient when invoice is generated
-   await notificationServices.notifyUser(
-     appointment.patient?.user?.id,
-     "New Invoice Generated 🧾",
-     `Invoice ${billNumber} for ₹${finalAmount.toFixed(2)} has been generated for your appointment.`,
-     NotificationType.BILLING,
-     { billingId: saveBilling.id, billNumber }
-   );
+  await billingRepository.createBillingItems(manager, itemsTosave);
+
+  // 🔔 Auto-notify Patient when invoice is generated
+  await notificationServices.notifyUser(
+    appointment.patient?.user?.id,
+    "New Invoice Generated 🧾",
+    `Invoice ${billNumber} for ₹${finalAmount.toFixed(2)} has been generated for your appointment.`,
+    NotificationType.BILLING,
+    { billingId: saveBilling.id, billNumber }
+  );
 
 
-   const  finalBilling  = await billingRepository.getBillingById(saveBilling.id);
-   return formatBilling(finalBilling);
+  const finalBilling = await billingRepository.getBillingById(saveBilling.id);
+  return formatBilling(finalBilling);
 
 }
 
@@ -205,14 +205,14 @@ module.exports.getBillingById = async (billingId, user) => {
   return formatBilling(billing);
 };
 // Get All Bills (Admin / Receptionist)
-// CHANGED: Get All Bills (Admin / Receptionist With APIFeatures)
+//: Get All Bills (Admin / Receptionist With APIFeatures)
 module.exports.getAllBillings = async (queryString = {}) => {
   const result = await billingRepository.getAllBillings(queryString);
   result.items = (result.items || []).map(formatBilling);
   return result;
 };
 
-// CHANGED: Get My Bills (Patient Self-Service With APIFeatures)
+//: Get My Bills (Patient Self-Service With APIFeatures)
 module.exports.getMyBillings = async (user, queryString = {}) => {
   const patient = await patientRepository.findPatientByUserId(user.id);
   if (!patient) {
@@ -228,15 +228,15 @@ module.exports.getMyBillings = async (user, queryString = {}) => {
 // Update / Finalize Bill (Receptionist & Admin)
 module.exports.updateBilling = async (billingId, updateData, user) => {
   const billing = await billingRepository.getBillingById(billingId);
-   if(!billing) throw new AppError("Invoice/Bill was not found", 404);
+  if (!billing) throw new AppError("Invoice/Bill was not found", 404);
 
 
-     // Security Check: Prevent modifying fully PAID invoices
+  // Security Check: Prevent modifying fully PAID invoices
   if (billing.paymentStatus === BillingStatus.PAID) {
     throw new AppError("Fully paid invoices cannot be modified", 400);
   }
 
-    // 1. Filter allowed fields from update request
+  // 1. Filter allowed fields from update request
   const filteredBody = filterObject(
     updateData,
     "discountAmount",
@@ -248,7 +248,7 @@ module.exports.updateBilling = async (billingId, updateData, user) => {
 
   let additionalTotal = 0;
   const newItemsToSave = [];
- 
+
   if (Array.isArray(updateData.additionalItems) && updateData.additionalItems.length > 0) {
     for (const item of updateData.additionalItems) {
       const qty = parseInt(item.quantity || 1, 10);
@@ -266,7 +266,7 @@ module.exports.updateBilling = async (billingId, updateData, user) => {
     }
   }
 
-  
+
   //  Calculate updated totals
   const currentTotalAmount = Number(billing.totalAmount || 0);
   const newTotalAmount = currentTotalAmount + additionalTotal;

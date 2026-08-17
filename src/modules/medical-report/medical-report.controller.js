@@ -1,4 +1,4 @@
-// CHANGED
+//
 const asyncHandler = require('../../common/utils/async-handler');
 const medicalReportService = require("./medical-report.services");
 const { sendSuccess, sendPaginated } = require('../../common/utils/response.util');
@@ -10,7 +10,7 @@ module.exports.createMedicalReport = asyncHandler(async (req, res, next) => {
     return sendSuccess(res, 201, "Medical report created successfully", { medicalReport });
 });
 
-// CHANGED: Get All Medical Reports (Supports APIFeatures query parameters)
+//: Get All Medical Reports (Supports APIFeatures query parameters)
 module.exports.getAllMedicalReports = asyncHandler(async (req, res, next) => {
     const paginatedData = await medicalReportService.getAllMedicalReports(req.user, req.query);
     return sendPaginated(
@@ -28,13 +28,13 @@ module.exports.getMedicalReportById = asyncHandler(async (req, res, next) => {
     return sendSuccess(res, 200, "Medical report retrieved successfully", { medicalReport });
 });
 
-// CHANGED: Get My Medical Reports (Supports APIFeatures query parameters)
+//: Get My Medical Reports (Supports APIFeatures query parameters)
 module.exports.getMyMedicalReports = asyncHandler(async (req, res, next) => {
     const paginatedData = await medicalReportService.getMyMedicalReports(req.user, req.query);
     return sendPaginated(res, 200, "Medical reports retrieved successfully", paginatedData);
 });
 
-// CHANGED: Get Medical Reports By Appointment ID (Supports APIFeatures query parameters)
+//: Get Medical Reports By Appointment ID (Supports APIFeatures query parameters)
 module.exports.getAllMedicalReportByAppointmentId = asyncHandler(async (req, res, next) => {
     const paginatedData = await medicalReportService.getMedicalReportsByAppointmentId(req.params.appointmentId || req.params.id, req.query);
     return sendPaginated(res, 200, "Medical reports retrieved successfully", paginatedData);

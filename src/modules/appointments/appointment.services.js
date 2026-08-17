@@ -104,16 +104,16 @@ module.exports.createAppointment = async (appointmentData, user) => {
     // 🔔 1. Auto-notify Patient when appointment is booked
     await notificationServices.notifyUser(
       patient.user?.id,
-      "Appointment Booked 📅",
+      "Appointment Booked ",
       `Your appointment with Dr. ${doctor.user?.firstName || "Doctor"} is booked for ${new Date(savedAppointment.appointmentDateTime).toLocaleDateString()}.`,
       NotificationType.APPOINTMENT,
       { appointmentId: savedAppointment.id }
     );
 
-    // 🔔 2. Auto-notify ALL Active Receptionists at the front desk
+    //  2. Auto-notify ALL Active Receptionists at the front desk
     await notificationServices.notifyRole(
       Roles.RECEPTIONIST,
-      "New Pending Appointment 🔔",
+      "New Pending Appointment",
       `Patient ${patient.user?.firstName || "A patient"} requested an appointment with Dr. ${doctor.user?.firstName || "Doctor"} for ${new Date(savedAppointment.appointmentDateTime).toLocaleDateString()}.`,
       NotificationType.APPOINTMENT,
       { appointmentId: savedAppointment.id, patientId: patient.id }
@@ -127,7 +127,7 @@ module.exports.createAppointment = async (appointmentData, user) => {
 
 
 // Retrive all apppintment 
-// CHANGED: Get All Appointments (With APIFeatures Query Parameters)
+//: Get All Appointments (With APIFeatures Query Parameters)
 module.exports.getAllAppointments = async (queryString = {}) => {
   return await appointmentRepository.getAllAppointments(queryString);
 };
@@ -260,9 +260,22 @@ module.exports.confirmAppointment = async (appointmentId, user) => {
   const appointment = await appointmentRepository.getAppointmentById(appointmentId);
   if (!appointment) throw new AppError("Appointment is not found !", 404);
 
+  // Validate Patient Ownership & Allowed Status if user is a Patient
+  if (user.role === Roles.PATIENT) {
+    if (appointment.patient?.user?.id !== user.id) {
+      throw new AppError("You do not have permission to confirm this appointment", 403);
+    }
+    if (appointment.status !== AppointmentStatus.RESCHEDULED) {
+      throw new AppError("Patients can only confirm rescheduled appointments", 400);
+    }
+  }
+
   // Validate Current Status
-  if (appointment.status !== AppointmentStatus.PENDING) {
-    throw new AppError("Only pending appointments can be confirmed", 400);
+  if (
+    appointment.status !== AppointmentStatus.PENDING &&
+    appointment.status !== AppointmentStatus.RESCHEDULED
+  ) {
+    throw new AppError("Only pending or rescheduled appointments can be confirmed", 400);
   }
 
   // Check Doctor Active Status
@@ -314,6 +327,16 @@ module.exports.confirmAppointment = async (appointmentId, user) => {
     { appointmentId: appointment.id, patientId: appointment.patient?.id }
   );
 
+  // auto send the notification when the  patient  confirm the reshedule  notification
+  if (user.role === Roles.PATIENT) {
+    await notificationServices.notifyRole(
+      Roles.RECEPTIONIST,
+      "Rescheduled Appointment Confirmed",
+      `Patient ${appointment.patient?.user?.firstName || "Patient"} confirmed the rescheduled appointment with Dr. ${appointment.doctor?.user?.firstName || "Doctor"} for ${new Date(appointment.appointmentDateTime).toLocaleDateString()}.`,
+      NotificationType.APPOINTMENT,
+      { appointmentId: appointment.id, patientId: appointment.patient?.id }
+    );
+  }
 
   return confirmedAppointment;
 };
@@ -464,13 +487,17 @@ module.exports.rescheduleAppointment = async (appointmentId, newAppointmentDateT
     throw new AppError("New appointment date and time must be in the future", 400);
   }
 
+  if (newDateTime <= new Date(appointment.appointmentDateTime)) {
+    throw new AppError("New appointment date and time must be strictly after the current appointment date and time", 400);
+  }
+
   // Start Transaction
-  return await AppDataSource.transaction(async (manager) => {
+  const rescheduledAppointment = await AppDataSource.transaction(async (manager) => {
 
     // Check Doctor Conflict
     const existingDoctorAppointment = await appointmentRepository.findDoctorAppointment(manager, appointment.doctor.id, newDateTime);
     if (existingDoctorAppointment && existingDoctorAppointment.id !== appointment.id &&
-      [AppointmentStatus.PENDING, AppointmentStatus.CONFIRMED].includes(existingDoctorAppointment.status)
+      [AppointmentStatus.PENDING, AppointmentStatus.CONFIRMED, AppointmentStatus.RESCHEDULED].includes(existingDoctorAppointment.status)
     ) {
       throw new AppError(
         "Doctor is already booked for this date and time slot",
@@ -490,7 +517,8 @@ module.exports.rescheduleAppointment = async (appointmentId, newAppointmentDateT
       existingPatientAppointment.id !== appointment.id &&
       [
         AppointmentStatus.PENDING,
-        AppointmentStatus.CONFIRMED
+        AppointmentStatus.CONFIRMED,
+        AppointmentStatus.RESCHEDULED
       ].includes(
         existingPatientAppointment.status
       )
@@ -505,6 +533,7 @@ module.exports.rescheduleAppointment = async (appointmentId, newAppointmentDateT
     // Prepare Update Data
     const appointmentInfo = {
       appointmentDateTime: newDateTime,
+      status: AppointmentStatus.RESCHEDULED,
       updatedBy: {
         id: user.id,
       },
@@ -518,11 +547,21 @@ module.exports.rescheduleAppointment = async (appointmentId, newAppointmentDateT
       appointmentId,
       appointmentInfo
     );
-  }
+  });
+
+  // 🔔 Auto-notify Patient AFTER transaction finishes
+  await notificationServices.notifyUser(
+    appointment.patient?.user?.id,
+    "Appointment Rescheduled 📅",
+    `Your appointment with Dr. ${appointment.doctor?.user?.firstName || "Doctor"} has been rescheduled to ${newDateTime.toLocaleDateString()}. Please review and confirm your new schedule.`,
+    NotificationType.APPOINTMENT,
+    { appointmentId: appointment.id }
   );
+
+  return rescheduledAppointment;
 };
 
-// CHANGED: Get My Appointments (Patient Self-Service With APIFeatures Query Parameters)
+//: Get My Appointments (Patient Self-Service With APIFeatures Query Parameters)
 module.exports.getMyAppointments = async (userId, queryString = {}) => {
   const patient = await patientRepository.findPatientByUserId(userId);
   if (!patient) throw new AppError("patient profile was not found!", 404);
@@ -628,14 +667,14 @@ module.exports.completeAppointment = async (
 // Process 2-Stage Unattended Appointment  Pipeline (Run by Cron)
 module.exports.processUnattendedAppointmentsEscalation = async () => {
   try {
-    // STAGE 1: Send 3-Hour Warning Reminder to Receptionists
+    //  Send 3-Hour Warning Reminder to Receptionists
     const pendingForReminder = await appointmentRepository.getPendingAppointmentsForReminder(3);
 
     for (const apt of pendingForReminder || []) {
       // 1. Send Urgent Warning to all Receptionists
       await notificationServices.notifyRole(
         Roles.RECEPTIONIST,
-        "Urgent Appointment Warning ⚠️",
+        "Urgent Appointment Warning",
         `Appointment for Patient ${apt.patient?.user?.firstName || "Patient"} with Dr. ${apt.doctor?.user?.firstName || "Doctor"} has been pending for over 3 hours. Please take action immediately!`,
         NotificationType.APPOINTMENT,
         { appointmentId: apt.id, patientId: apt.patient?.id }
@@ -645,7 +684,7 @@ module.exports.processUnattendedAppointmentsEscalation = async () => {
       await appointmentRepository.updateReminderSentAt(apt.id);
     }
 
-    // STAGE 2: Auto-Cancel 4-Hour Unattended Pending Appointments
+    //  Auto-Cancel 4-Hour Unattended Pending Appointments
     const pendingForCancellation = await appointmentRepository.getPendingAppointmentsForCancellation(4);
 
     for (const apt of pendingForCancellation || []) {
@@ -662,7 +701,7 @@ module.exports.processUnattendedAppointmentsEscalation = async () => {
       // 2. Send Cancellation Notification to Patient
       await notificationServices.notifyUser(
         apt.patient?.user?.id,
-        "Appointment Request Cancelled ❌",
+        "Appointment Request Cancelled ",
         `Your appointment request for Dr. ${apt.doctor?.user?.firstName || "Doctor"} was auto-cancelled because it could not be confirmed in time. Please select another slot.`,
         NotificationType.APPOINTMENT,
         { appointmentId: apt.id }

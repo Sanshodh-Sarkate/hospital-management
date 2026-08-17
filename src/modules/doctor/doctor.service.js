@@ -9,7 +9,7 @@ const { checkUserUniqueness } = require('../../common/services/business-validati
 const { Result } = require("express-validator");
 const Roles = require("../../common/enums/role.enum");
 
-
+// create the doctor only by admin 
 module.exports.createDoctor = async (doctorData, adminId) => {
   // check email and phone uniqueness
   await checkUserUniqueness({
@@ -76,26 +76,26 @@ module.exports.createDoctor = async (doctorData, adminId) => {
 
 }
 
-// CHANGED: Get All Doctors (Supports APIFeatures query parameters)
+//: Get All Doctors (Supports APIFeatures query parameters)
 module.exports.getAllDoctors = async (queryString = {}) => {
   return await doctorRepository.findAllDoctors(queryString);
 };
 
-// CHANGED: Get Doctor Dashboard Metrics
+//: Get Doctor Dashboard Metrics
 module.exports.getDoctorDashboardStats = async (user) => {
   const doctor = await doctorRepository.findDoctorByUserId(user.id);
   if (!doctor) throw new AppError("Doctor profile not found", 404);
   return await doctorRepository.getDoctorDashboardMetrics(doctor.id);
 };
 
-// CHANGED: Get My Doctor Profile
+//: Get My Doctor Profile
 module.exports.getMyDoctorProfile = async (userId) => {
   const doctor = await doctorRepository.findDoctorByUserId(userId);
   if (!doctor) throw new AppError("Doctor profile not found", 404);
   return doctor;
 };
 
-// CHANGED: Get My Doctor Appointments (With APIFeatures)
+//: Get My Doctor Appointments (With APIFeatures)
 module.exports.getMyDoctorAppointments = async (user, queryString = {}) => {
   const doctor = await doctorRepository.findDoctorByUserId(user.id);
   if (!doctor) throw new AppError("Doctor profile not found", 404);
@@ -103,7 +103,7 @@ module.exports.getMyDoctorAppointments = async (user, queryString = {}) => {
 };
 
 
-
+// get doctor by id  
 module.exports.getDoctorById = async (doctorId) => {
 
   const doctor = await doctorRepository.findDoctorById(
@@ -117,6 +117,7 @@ module.exports.getDoctorById = async (doctorId) => {
   return doctor;
 };
 
+// update doctor 
 module.exports.updateDoctor = async (doctorId, updatedDoctorData, adminId) => {
   // check doctor  
   const doctor = await doctorRepository.findDoctorById(doctorId);
@@ -210,7 +211,7 @@ module.exports.updateDoctor = async (doctorId, updatedDoctorData, adminId) => {
 
 }
 
-
+// delete doctor (soft delete )
 module.exports.deleteDoctor = async (doctorId, adminId) => {
   const doctor = await doctorRepository.findDoctorById(doctorId);
 
@@ -231,13 +232,13 @@ module.exports.deleteDoctor = async (doctorId, adminId) => {
   })
 }
 
-module.exports.updateDoctorAvailability = async (doctorId , availabilityStatus , adminId)=> {
-  const doctor  =  await doctorRepository.findDoctorById(doctorId);
+module.exports.updateDoctorAvailability = async (doctorId, availabilityStatus, adminId) => {
+  const doctor = await doctorRepository.findDoctorById(doctorId);
 
-  if(!doctor) throw new AppError("Dctor is not found!" , 404);
+  if (!doctor) throw new AppError("Dctor is not found!", 404);
 
-  return await doctorRepository.updateDoctor(doctorId , {
+  return await doctorRepository.updateDoctor(doctorId, {
     availabilityStatus,
-    updatedBy: adminId 
+    updatedBy: adminId
   })
 }
