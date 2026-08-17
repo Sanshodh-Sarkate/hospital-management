@@ -14,6 +14,8 @@ const  medicalReportRoutes =  require('./modules/medical-report/medical-report.r
 const billingRoutes = require("./modules/billing/billing-routes");
 const paymentRoutes = require("./modules/payment/payment.routes");
 const notificationRoutes = require("./modules/notification/notification.routes");
+const hospitalRoutes = require("./modules/hospital/hospital.routes");
+
 
 
 
@@ -48,6 +50,8 @@ app.use('/api/medical-reports' , medicalReportRoutes  )
 app.use("/api/billing", billingRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/hospital", hospitalRoutes);
+
 
 
 

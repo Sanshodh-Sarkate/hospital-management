@@ -7,6 +7,7 @@ const doctorRepository = require("../doctor/doctor.repository");
 const patientRepository = require("../patient/patient.repository");
 const filterObject = require("../../common/utils/filter-object.util");
 const Roles = require("../../common/enums/role.enum");
+const AppointmentStatus = require("../../common/enums/appointment-status.enum");
 const generateMedicalReportPdf = require('../../common/utils/medical-report.pdf');
 const logger = require('pino')();
 
@@ -27,6 +28,7 @@ const formatMedicalReport = (r) => {
         result: r.result,
         normalRange: r.normalRange || null,
         unit: r.unit || null,
+        reportCharge: Number(r.reportCharge || 0),
         reportFileUrl: r.reportFileUrl || null,
         remarks: r.remarks || null,
         generatedAt: r.generatedAt,
@@ -59,6 +61,7 @@ module.exports.createMedicalReport = async (reportData, user) => {
         normalRange,
         unit,
         remarks,
+        reportCharge,
     } = reportData;
 
     // 1. Validate authenticated doctor profile
@@ -71,6 +74,14 @@ module.exports.createMedicalReport = async (reportData, user) => {
     const appointment = await appointmentRepository.getAppointmentById(appointmentId);
     if (!appointment) {
         throw new AppError("Appointment not found", 404);
+    }
+
+    // Medical reports can ONLY be generated when appointment is CONFIRMED
+    if (appointment.status === AppointmentStatus.COMPLETED) {
+        throw new AppError("Cannot create medical reports for completed appointments", 400);
+    }
+    if (appointment.status !== AppointmentStatus.CONFIRMED) {
+        throw new AppError("Medical reports can only be generated when the appointment is CONFIRMED", 400);
     }
 
     // 3. Check authorization: Appointment must belong to this doctor
@@ -93,57 +104,59 @@ module.exports.createMedicalReport = async (reportData, user) => {
         normalRange,
         unit,
         remarks,
+        reportCharge: Number(reportCharge || 0),
         appointment: { id: appointment.id },
         patient: { id: appointment.patient.id },
         doctor: { id: doctor.id },
         generatedBy: { id: user.id },
     });
 
+
     // 6. Return complete report
-    const completeReport  = await medicalReportRepository.getMedicalReportById(medicalReport.id);
-      if (!completeReport) {
-    throw new AppError(
-      "Medical report could not be retrieved after creation",
-      500
-    );
-  }
-
-// Generate PDF file name
-  const fileName = `${completeReport.reportNumber}.pdf`;
-  const uploadDir = path.join(process.cwd(), "uploads", "medical-reports");
-  if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-  }
-
-  const outputPath = path.join(uploadDir, fileName);
-
-  // Generate PDF file
-  await generateMedicalReportPdf(completeReport, outputPath);
-
-//   Generate URL/path stored in DB
-  const reportFileUrl =
-    `/uploads/medical-reports/${fileName}`;
-
-      await medicalReportRepository.updateMedicalReport(
-    medicalReport.id,
-    {
-      reportFileUrl,
-      updatedBy: {
-        id: user.id,
-      },
+    const completeReport = await medicalReportRepository.getMedicalReportById(medicalReport.id);
+    if (!completeReport) {
+        throw new AppError(
+            "Medical report could not be retrieved after creation",
+            500
+        );
     }
-  );
-   const savedReport  =   await medicalReportRepository.getMedicalReportById(
-    medicalReport.id
-  );
- 
-     
+
+    // Generate PDF file name
+    const fileName = `${completeReport.reportNumber}.pdf`;
+    const uploadDir = path.join(process.cwd(), "uploads", "medical-reports");
+    if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    const outputPath = path.join(uploadDir, fileName);
+
+    // Generate PDF file
+    await generateMedicalReportPdf(completeReport, outputPath);
+
+    //   Generate URL/path stored in DB
+    const reportFileUrl =
+        `/uploads/medical-reports/${fileName}`;
+
+    await medicalReportRepository.updateMedicalReport(
+        medicalReport.id,
+        {
+            reportFileUrl,
+            updatedBy: {
+                id: user.id,
+            },
+        }
+    );
+    const savedReport = await medicalReportRepository.getMedicalReportById(
+        medicalReport.id
+    );
+
+
 
 
     return formatMedicalReport(savedReport);
 };
 
-// CHANGED: Get All Medical Reports (Role-Aware With APIFeatures)
+// Get All Medical Reports (Role-Aware With APIFeatures)
 module.exports.getAllMedicalReports = async (user, queryString = {}) => {
     if (user.role === Roles.ADMIN || user.role === Roles.RECEPTIONIST) {
         const result = await medicalReportRepository.getAllMedicalReports(queryString);
@@ -173,11 +186,11 @@ module.exports.getMedicalReportById = async (reportId) => {
     return formatMedicalReport(medicalReport);
 };
 
-// CHANGED: Get My Medical Reports (Role-Aware Self-Service With APIFeatures)
+// Get My Medical Reports (Role-Aware Self-Service With APIFeatures)
 module.exports.getMyMedicalReports = async (user, queryString = {}) => {
     if (user.role === Roles.PATIENT) {
         const patient = await patientRepository.findPatientByUserId(user.id);
-        
+
         if (!patient) {
             throw new AppError("Patient profile not found", 404);
         }
@@ -205,7 +218,7 @@ module.exports.getMyMedicalReports = async (user, queryString = {}) => {
     throw new AppError("You are not authorized to access medical reports", 403);
 };
 
-// CHANGED: Get Medical Reports By Appointment ID (With APIFeatures)
+// Get Medical Reports By Appointment ID (With APIFeatures)
 module.exports.getMedicalReportsByAppointmentId = async (appointmentId, queryString = {}) => {
     const appointment = await appointmentRepository.getAppointmentById(appointmentId);
     if (!appointment) {
@@ -263,9 +276,11 @@ module.exports.updateMedicalReport = async (reportId, reportData, userId) => {
         "result",
         "normalRange",
         "unit",
+        "reportCharge",
         "reportFileUrl",
         "remarks"
     );
+
 
     if (Object.keys(updateData).length === 0) {
         throw new AppError("No valid fields provided for update", 400);

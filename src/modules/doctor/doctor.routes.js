@@ -41,14 +41,21 @@ router.get(
 router.get('/' ,authMiddleware.protect , validateQueryFeatures, validationRequest, doctorController.getAllDoctors );
 
 
+// Check Doctor Availability (Accessible to Receptionists, Patients, Admins, Doctors)
+router.get(
+  "/:id/check-availability",
+  authMiddleware.protect,
+  doctorController.checkDoctorAvailability
+);
+
 router.get('/:id' , authMiddleware.protect ,doctorController.getDoctorById);
 
 router.patch('/:id' , authMiddleware.protect , authMiddleware.restrictTo("ADMIN") ,doctorValidations.updateDoctorValidation ,  validationRequest  ,  doctorController.updateDoctor)
 
-router.patch('/:id/availability' , authMiddleware.protect ,authMiddleware.restrictTo("ADMIN" , "DOCTOR") , doctorValidations.updateAvailabilityValidation, validationRequest ,  doctorController.updateDoctorAvailability)
+router.patch('/:id/availability' , authMiddleware.protect ,authMiddleware.restrictTo("ADMIN" , "DOCTOR", "RECEPTIONIST") , doctorValidations.updateAvailabilityValidation, validationRequest ,  doctorController.updateDoctorAvailability)
 
 //this is only set the  isActive =  false 
 router.delete('/:id' , authMiddleware.protect , authMiddleware.restrictTo("ADMIN") , doctorController.deleteDoctor)  
 
 
-module.exports =  router ;
+module.exports =  router ;

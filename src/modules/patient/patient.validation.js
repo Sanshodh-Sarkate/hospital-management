@@ -12,15 +12,15 @@ module.exports.createPatientValidation = [
     .trim()
     .notEmpty()
     .withMessage("First name is required")
-    .isLength({ max: DB.NAME_MAX_LENGTH })
-    .withMessage(`First name cannot exceed ${DB.NAME_MAX_LENGTH} characters`),
+    .isLength({ min: 2, max: DB.NAME_MAX_LENGTH })
+    .withMessage("First name must be at least 2 characters"),
 
   body("lastName")
     .trim()
     .notEmpty()
     .withMessage("Last name is required")
-    .isLength({ max: DB.NAME_MAX_LENGTH })
-    .withMessage(`Last name cannot exceed ${DB.NAME_MAX_LENGTH} characters`),
+    .isLength({ min: 2, max: DB.NAME_MAX_LENGTH })
+    .withMessage("Last name must be at least 2 characters"),
 
   body("email")
     .trim()
@@ -43,8 +43,8 @@ module.exports.createPatientValidation = [
     .trim()
     .notEmpty()
     .withMessage("Phone number is required")
-    .isLength({ min: 10, max: DB.PHONE_MAX_LENGTH })
-    .withMessage("Invalid phone number"),
+    .isLength({ min: 10, max: 10 })
+    .withMessage("Phone number must be exactly 10 digits"),
 
   // Patient Details
   body("dateOfBirth")
@@ -101,8 +101,8 @@ module.exports.createPatientValidation = [
     .trim()
     .notEmpty()
     .withMessage("Emergency contact number is required")
-    .isLength({ min: 10, max: DB.PHONE_MAX_LENGTH })
-    .withMessage("Invalid emergency contact number"),
+    .isLength({ min: 10, max: 10 })
+    .withMessage("Emergency contact number must be exactly 10 digits"),
 
   body("emergencyContactRelation")
     .trim()
@@ -132,14 +132,14 @@ module.exports.updatePatientValidation = [
   body("firstName")
     .optional()
     .trim()
-    .isLength({ max: DB.NAME_MAX_LENGTH })
-    .withMessage(`First name cannot exceed ${DB.NAME_MAX_LENGTH} characters`),
+    .isLength({ min: 2, max: DB.NAME_MAX_LENGTH })
+    .withMessage("First name must be at least 2 characters"),
 
   body("lastName")
     .optional()
     .trim()
-    .isLength({ max: DB.NAME_MAX_LENGTH })
-    .withMessage(`Last name cannot exceed ${DB.NAME_MAX_LENGTH} characters`),
+    .isLength({ min: 2, max: DB.NAME_MAX_LENGTH })
+    .withMessage("Last name must be at least 2 characters"),
 
   body("email")
     .optional()
@@ -159,8 +159,9 @@ module.exports.updatePatientValidation = [
   body("phoneNumber")
     .optional()
     .trim()
-    .isLength({ min: 10, max: DB.PHONE_MAX_LENGTH })
-    .withMessage("Invalid phone number"),
+    .isLength({ min: 10, max: 10 })
+    .withMessage("Phone number must be exactly 10 digits"),
+
 
   body("dateOfBirth")
     .optional()

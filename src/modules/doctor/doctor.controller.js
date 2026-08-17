@@ -60,5 +60,12 @@ module.exports.updateDoctorAvailability = asyncHandler(async (req, res) => {
     return sendSuccess(res, 200, "Doctor availability updated successfully", doctor);
 });
 
+// Check Doctor Availability (For Receptionists / Patients / Admins)
+module.exports.checkDoctorAvailability = asyncHandler(async (req, res) => {
+    const result = await doctorServices.checkDoctorAvailability(req.params.id, req.query.dateTime || req.query.appointmentDateTime);
+    return sendSuccess(res, 200, "Doctor availability checked successfully", result);
+});
+
+
 
 

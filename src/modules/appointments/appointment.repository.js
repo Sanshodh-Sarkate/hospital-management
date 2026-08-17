@@ -29,6 +29,7 @@ const getAllAppointments = async (queryString = {}) => {
   const findOptions = features.getFindOptions(
     {},
     {
+      department: true,
       patient: { user: true },
       doctor: { user: true },
       receptionist: { user: true },
@@ -49,6 +50,7 @@ const getAppointmentById = async (appointmentId) => {
             id: appointmentId,
         },
         relations: {
+            department: true,
             patient: {
                 user: true,
             },
@@ -63,6 +65,7 @@ const getAppointmentById = async (appointmentId) => {
         },
     });
 }
+
 
 // FIND THE DOCTOR APPOINTMENT inside transaction
 const findDoctorAppointment = async (manager, doctorId, appointmentDateTime) => {

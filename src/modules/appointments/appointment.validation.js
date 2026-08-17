@@ -13,11 +13,18 @@ module.exports.createAppointmentValidation = [
     .withMessage("Invalid Patient ID format"),
 
 
+  body("departmentId")
+    .notEmpty()
+    .withMessage("Department ID is required")
+    .isUUID()
+    .withMessage("Invalid Department ID format"),
+
   body("doctorId")
     .notEmpty()
     .withMessage("Doctor ID is required")
     .isUUID()
     .withMessage("Invalid Doctor ID format"),
+
 
   body("appointmentDateTime")
     .notEmpty()

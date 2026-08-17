@@ -1,13 +1,13 @@
-const express  = require('express');
+const express = require('express');
 const validationRequest = require('../../common/middleware/validation.middleware');
-const patientValidations =  require('./patient.validation');
-const authMiddleware =  require('../auth/auth.middleware');
+const patientValidations = require('./patient.validation');
+const authMiddleware = require('../auth/auth.middleware');
 const patientController = require('./patient.controller');
 const appointmentController = require("../appointments/appointments.controller");
-const appointmentValidations  =  require('../appointments/appointment.validation')
+const appointmentValidations = require('../appointments/appointment.validation')
 
 
-const router  =  express.Router();
+const router = express.Router();
 
 // Specific routes must come before parameterized routes (/:id)
 router.get('/me', authMiddleware.protect, authMiddleware.restrictTo("PATIENT"), patientController.getMyProfile);
@@ -25,10 +25,10 @@ router.get(
   validationRequest,
   appointmentController.getMyAppointments
 );
-router.post('/booking/appointment' , 
-    authMiddleware.protect , 
-    authMiddleware.restrictTo("PATIENT") ,
-    appointmentValidations.createAppointmentValidation, validationRequest , appointmentController.bookAppointment)
+router.post('/booking/appointment',
+  authMiddleware.protect,
+  authMiddleware.restrictTo("PATIENT"),
+  appointmentValidations.createAppointmentValidation, validationRequest, appointmentController.bookAppointment)
 
 
 

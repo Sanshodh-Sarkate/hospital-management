@@ -19,6 +19,8 @@ module.exports = new EntitySchema({
       nullable: false,
     },
 
+
+
     appointmentType: {
       name: "appointment_type",
       type: "enum",
@@ -65,6 +67,17 @@ module.exports = new EntitySchema({
   },
 
   relations: {
+    department: {
+      type: "many-to-one",
+      target: "Department",
+      joinColumn: {
+        name: "department_id",
+      },
+      nullable: true,
+      inverseSide: "appointments",
+      onDelete: "RESTRICT",
+    },
+
     patient: {
       type: "many-to-one",
       target: "Patient",
@@ -75,6 +88,7 @@ module.exports = new EntitySchema({
       inverseSide: "appointments",
       onDelete: "RESTRICT",
     },
+
 
     doctor: {
       type: "many-to-one",

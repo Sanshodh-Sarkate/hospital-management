@@ -1,4 +1,3 @@
-// CHANGED
 const receptionistServices = require('./receptionist.services');
 const asyncHandler = require('../../common/utils/async-handler');
 const { sendSuccess, sendPaginated } = require('../../common/utils/response.util');
@@ -20,7 +19,7 @@ module.exports.createReceptionist = asyncHandler(async (req, res, next) => {
   return sendSuccess(res, 201, "Receptionist created successfully", result);
 });
 
-// CHANGED: Get All Receptionists (Supports APIFeatures query parameters)
+// Get All Receptionists (Supports APIFeatures query parameters)
 module.exports.getAllReceptionists = asyncHandler(async (req, res, next) => {
   const receptionists = await receptionistServices.getAllReceptionist(req.query);
   return sendPaginated(res, 200, "Receptionists fetched successfully", receptionists);
