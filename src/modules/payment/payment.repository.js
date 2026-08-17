@@ -1,6 +1,6 @@
 const AppDataSource = require("../../config/db");
 const Payment = require("../billing/payment.entity");
-const Billing =  require("../billing/billing.entity");
+const Billing = require("../billing/billing.entity");
 
 
 
@@ -34,10 +34,10 @@ const getPaymentById = async (paymentId) => {
   });
 };
 
-// CHANGED
+//
 const APIFeatures = require("../../common/utils/api-features.util");
 
-// CHANGED: 3. Get Payments by Billing ID (With APIFeatures Query Builder)
+//: 3. Get Payments by Billing ID (With APIFeatures Query Builder)
 const getPaymentsByBillingId = async (billingId, queryString = {}) => {
   const features = new APIFeatures(queryString)
     .filter(["paymentMethod", "paymentStatus"])

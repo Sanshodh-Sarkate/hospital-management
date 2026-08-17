@@ -1,4 +1,4 @@
-// CHANGED
+//
 const userRepository = require('../user/user.repository')
 const { hashPassword, compareHashedPassword } = require('../../common/utils/password.util')
 const {
@@ -165,7 +165,7 @@ module.exports.refreshAccessToken = async (incomingRefreshToken) => {
 };
 
 
-// CHANGED: Logout functionality
+//: Logout functionality
 module.exports.logoutUser = async (userId) => {
     if (userId) {
         await userRepository.updateUser(userId, {
@@ -212,7 +212,7 @@ module.exports.changePassword = async (currentUser, passwordData) => {
         passwordResetToken: null,
         passwordResetExpires: null,
         passwordChangedAt: new Date(),
-        // CHANGED: Invalidate stored refresh token
+        //: Invalidate stored refresh token
         refreshTokenHash: null,
     })
 
@@ -276,7 +276,7 @@ module.exports.resetPassword = async (resetToken, passwordData) => {
         passwordResetToken: null,
         passwordResetExpires: null,
         passwordChangedAt: new Date(),
-        // CHANGED: Invalidate stored refresh token
+        //: Invalidate stored refresh token
         refreshTokenHash: null,
     });
 

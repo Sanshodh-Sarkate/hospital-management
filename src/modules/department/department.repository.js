@@ -1,17 +1,17 @@
-const AppDataSource =   require('../../config/db')
+const AppDataSource = require('../../config/db')
 const Department = require('../department/department.entity');
 
-const departmentRepository =  AppDataSource.getRepository(Department);
+const departmentRepository = AppDataSource.getRepository(Department);
 
-module.exports.createDepartment  = async(departmentData) => {
-    const createNewDepartment  =  await departmentRepository.create(departmentData);
-      return await departmentRepository.save(createNewDepartment);
+module.exports.createDepartment = async (departmentData) => {
+  const createNewDepartment = await departmentRepository.create(departmentData);
+  return await departmentRepository.save(createNewDepartment);
 }
 
-module.exports.findDepartmentById  =  async(id) => {
-    return await  departmentRepository.findOne({
-        where: {id}
-    });
+module.exports.findDepartmentById = async (id) => {
+  return await departmentRepository.findOne({
+    where: { id }
+  });
 }
 
 module.exports.findDepartmentByName = async (departmentName) => {
@@ -20,10 +20,10 @@ module.exports.findDepartmentByName = async (departmentName) => {
   });
 };
 
-// CHANGED
+//
 const APIFeatures = require("../../common/utils/api-features.util");
 
-// CHANGED: Get All Departments (With APIFeatures Query Builder)
+//: Get All Departments (With APIFeatures Query Builder)
 module.exports.findAllDepartments = async (queryString = {}) => {
   const features = new APIFeatures(queryString)
     .filter(["isActive"])

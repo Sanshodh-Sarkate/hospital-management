@@ -4,7 +4,7 @@ const AppError = require('../../common/errors/app.error');
 const asyncHandler = require('../../common/utils/async-handler')
 const { promisify } = require('util')
 
-// CHANGED
+//
 const { verifyAccessToken } = require('../../common/utils/jwt.util');
 
 module.exports.protect = asyncHandler(async (req, res, next) => {

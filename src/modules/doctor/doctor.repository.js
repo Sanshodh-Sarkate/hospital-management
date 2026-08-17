@@ -1,12 +1,12 @@
-// CHANGED
-const AppDataSource  =  require('../../config/db');
-const Doctor  =  require('./doctor.entity');
+//
+const AppDataSource = require('../../config/db');
+const Doctor = require('./doctor.entity');
 const Appointment = require("../appointments/appointment.entity");
 const AppointmentStatus = require("../../common/enums/appointment-status.enum");
 const { Between } = require("typeorm");
 
 const APIFeatures = require("../../common/utils/api-features.util");
-const doctorRepository =  AppDataSource.getRepository(Doctor);
+const doctorRepository = AppDataSource.getRepository(Doctor);
 
 //  Create Doctor (Transaction)
 module.exports.createDoctor = async (manager, doctorData) => {

@@ -1,4 +1,4 @@
-// CHANGED
+//
 const patientServices = require('./patient.service');
 const asyncHandler = require('../../common/utils/async-handler');
 const { sendSuccess, sendPaginated } = require('../../common/utils/response.util');
@@ -8,7 +8,7 @@ module.exports.registerPatient = asyncHandler(async (req, res, next) => {
     return sendSuccess(res, 201, "Patient created successfully", patient);
 });
 
-// CHANGED: Get All Patients (Supports APIFeatures query parameters)
+// Get All Patients (Supports APIFeatures query parameters)
 module.exports.getAllPatients = asyncHandler(async (req, res, next) => {
     const patients = await patientServices.getAllPatient(req.query);
     return sendPaginated(res, 200, "Patients fetched successfully", patients);

@@ -25,10 +25,10 @@ const getMedicalReportById = async (reportId) => {
   });
 };
 
-// CHANGED
+//
 const APIFeatures = require("../../common/utils/api-features.util");
 
-// CHANGED: Get All Medical Reports (With APIFeatures)
+//: Get All Medical Reports (With APIFeatures)
 const getAllMedicalReports = async (queryString = {}) => {
   const features = new APIFeatures(queryString)
     .filter(["patientId", "doctorId", "appointmentId"])
@@ -42,7 +42,7 @@ const getAllMedicalReports = async (queryString = {}) => {
   return features.formatResponse(reports, total);
 };
 
-// CHANGED: Get Medical Reports by Appointment ID (With APIFeatures)
+//: Get Medical Reports by Appointment ID (With APIFeatures)
 const getMedicalReportsByAppointmentId = async (appointmentId, queryString = {}) => {
   const features = new APIFeatures(queryString)
     .filter(["patientId", "doctorId"])
@@ -56,7 +56,7 @@ const getMedicalReportsByAppointmentId = async (appointmentId, queryString = {})
   return features.formatResponse(reports, total);
 };
 
-// CHANGED: Get Medical Reports by Patient ID (With APIFeatures)
+//: Get Medical Reports by Patient ID (With APIFeatures)
 const getMedicalReportsByPatientId = async (patientId, queryString = {}) => {
   const features = new APIFeatures(queryString)
     .filter(["doctorId", "appointmentId"])
@@ -70,7 +70,7 @@ const getMedicalReportsByPatientId = async (patientId, queryString = {}) => {
   return features.formatResponse(reports, total);
 };
 
-// CHANGED: Get Medical Reports by Doctor ID (With APIFeatures)
+//: Get Medical Reports by Doctor ID (With APIFeatures)
 const getMedicalReportsByDoctorId = async (doctorId, queryString = {}) => {
   const features = new APIFeatures(queryString)
     .filter(["patientId", "appointmentId"])

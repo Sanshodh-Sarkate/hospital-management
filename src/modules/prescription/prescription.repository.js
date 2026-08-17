@@ -42,10 +42,10 @@ const getPrescriptionByAppointmentId = async (appointmentId) => {
   });
 };
 
-// CHANGED
+//
 const APIFeatures = require("../../common/utils/api-features.util");
 
-// CHANGED: Get All Prescriptions (With APIFeatures)
+//: Get All Prescriptions (With APIFeatures)
 const getAllPrescriptions = async (queryString = {}) => {
   const features = new APIFeatures(queryString)
     .filter(["patientId", "doctorId", "appointmentId"])
@@ -59,7 +59,7 @@ const getAllPrescriptions = async (queryString = {}) => {
   return features.formatResponse(prescriptions, total);
 };
 
-// CHANGED: Get Prescriptions by Patient ID (With APIFeatures)
+//: Get Prescriptions by Patient ID (With APIFeatures)
 const getPrescriptionsByPatientId = async (patientId, queryString = {}) => {
   const features = new APIFeatures(queryString)
     .filter(["doctorId", "appointmentId"])
@@ -73,7 +73,7 @@ const getPrescriptionsByPatientId = async (patientId, queryString = {}) => {
   return features.formatResponse(prescriptions, total);
 };
 
-// CHANGED: Get Prescriptions by Doctor ID (With APIFeatures)
+//: Get Prescriptions by Doctor ID (With APIFeatures)
 const getPrescriptionsByDoctorId = async (doctorId, queryString = {}) => {
   const features = new APIFeatures(queryString)
     .filter(["patientId", "appointmentId"])

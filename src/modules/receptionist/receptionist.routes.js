@@ -4,11 +4,11 @@ const validationRequest = require("../../common/middleware/validation.middleware
 const { validateQueryFeatures } = require("../../common/middleware/query-validation.middleware");
 const receptionistValidations = require("./receptionist.validation");
 const authMiddleware = require("../auth/auth.middleware");
-const Roles  =  require('../../common/enums/role.enum')
+const Roles = require('../../common/enums/role.enum')
 
-const router =  express.Router();
+const router = express.Router();
 
-router.post('/' ,  authMiddleware.protect ,  authMiddleware.restrictTo("ADMIN") , receptionistValidations.createReceptionistValidation , validationRequest , receptionistController.createReceptionist);
+router.post('/', authMiddleware.protect, authMiddleware.restrictTo("ADMIN"), receptionistValidations.createReceptionistValidation, validationRequest, receptionistController.createReceptionist);
 
 router.get(
   "/dashboard-metrics",
@@ -26,9 +26,9 @@ router.get('/' ,  authMiddleware.protect ,  authMiddleware.restrictTo("ADMIN") ,
 
 
 
-router.get('/:id' ,  authMiddleware.protect ,  authMiddleware.restrictTo("ADMIN") , receptionistController.getReceptionistById);
+router.get('/:id', authMiddleware.protect, authMiddleware.restrictTo("ADMIN"), receptionistController.getReceptionistById);
 
-router.get('/emp/:employeeId' ,  authMiddleware.protect ,  authMiddleware.restrictTo("ADMIN" , "RECEPTIONIST") , receptionistController.getReceptionistByEmployeeId);
+router.get('/emp/:employeeId', authMiddleware.protect, authMiddleware.restrictTo("ADMIN", "RECEPTIONIST"), receptionistController.getReceptionistByEmployeeId);
 
 // update the recepationist   
 router.patch(
@@ -47,4 +47,4 @@ router.delete(
   authMiddleware.restrictTo("ADMIN"),
   receptionistController.deleteReceptionist
 );
-module.exports =  router  ;  
+module.exports = router;  

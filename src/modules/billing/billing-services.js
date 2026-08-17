@@ -107,7 +107,7 @@ module.exports.generateBillingForAppointment = async (appointmentId, manager) =>
 
 
   // 3. Fetch related Medical Reports
-  // CHANGED: Unwrap items array from paginated APIFeatures response object
+  //: Unwrap items array from paginated APIFeatures response object
   const reportsResult = await medicalReportRepository.getMedicalReportsByAppointmentId(appointmentId);
   const medicalReports = Array.isArray(reportsResult) ? reportsResult : (reportsResult?.items || []);
 
@@ -205,14 +205,14 @@ module.exports.getBillingById = async (billingId, user) => {
   return formatBilling(billing);
 };
 // Get All Bills (Admin / Receptionist)
-// CHANGED: Get All Bills (Admin / Receptionist With APIFeatures)
+//: Get All Bills (Admin / Receptionist With APIFeatures)
 module.exports.getAllBillings = async (queryString = {}) => {
   const result = await billingRepository.getAllBillings(queryString);
   result.items = (result.items || []).map(formatBilling);
   return result;
 };
 
-// CHANGED: Get My Bills (Patient Self-Service With APIFeatures)
+//: Get My Bills (Patient Self-Service With APIFeatures)
 module.exports.getMyBillings = async (user, queryString = {}) => {
   const patient = await patientRepository.findPatientByUserId(user.id);
   if (!patient) {

@@ -134,7 +134,7 @@ const processPayment = async (billingId, paymentData, user) => {
   };
 };
 
-// CHANGED: 2. Get Payments by Billing ID (Supports APIFeatures)
+//: 2. Get Payments by Billing ID (Supports APIFeatures)
 const getPaymentsByBillingId = async (billingId, user, queryString = {}) => {
   const billing = await billingRepository.getBillingById(billingId);
   if (!billing) {

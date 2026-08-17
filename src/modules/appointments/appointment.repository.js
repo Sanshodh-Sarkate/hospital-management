@@ -14,10 +14,10 @@ const createAppointment = async (manager, appointmentData) => {
     return await repository.save(appointment);
 }
 
-// CHANGED
+//
 const APIFeatures = require("../../common/utils/api-features.util");
 
-// CHANGED: 2. Get All Appointments (Using APIFeatures Class)
+//: 2. Get All Appointments (Using APIFeatures Class)
 const getAllAppointments = async (queryString = {}) => {
   const features = new APIFeatures(queryString)
     .filter(["status", "appointmentType", "doctorId", "patientId"])
@@ -112,24 +112,24 @@ const updateAppointmentWithTransaction = async (manager, appointmentId, appointm
 }
 
 
-// CHANGED: Get Appointments by Patient ID (With APIFeatures & Patient Authorization Scope)
+//: Get Appointments by Patient ID (With APIFeatures & Patient Authorization Scope)
 const getAppointmentByPatientId = async (patientId, queryString = {}) => {
-  const features = new APIFeatures(queryString)
-    .filter(["status", "appointmentType", "doctorId"])
-    .search(["reason"])
-    .sort(["appointmentDateTime", "createdAt", "status"], { field: "appointmentDateTime", order: "DESC" })
-    .limitFields()
-    .paginate(10);
+    const features = new APIFeatures(queryString)
+        .filter(["status", "appointmentType", "doctorId"])
+        .search(["reason"])
+        .sort(["appointmentDateTime", "createdAt", "status"], { field: "appointmentDateTime", order: "DESC" })
+        .limitFields()
+        .paginate(10);
 
-  const findOptions = features.getFindOptions(
-    { patient: { id: patientId } },
-    {
-      doctor: { user: true, department: true },
-    }
-  );
+    const findOptions = features.getFindOptions(
+        { patient: { id: patientId } },
+        {
+            doctor: { user: true, department: true },
+        }
+    );
 
-  const [appointments, total] = await appointmentRepository.findAndCount(findOptions);
-  return features.formatResponse(appointments, total);
+    const [appointments, total] = await appointmentRepository.findAndCount(findOptions);
+    return features.formatResponse(appointments, total);
 };
 
 

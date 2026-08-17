@@ -8,12 +8,12 @@ const { type } = require("node:os");
 
 const UserEntity = new EntitySchema({
 
-name: "User",
-tableName: "users",
+  name: "User",
+  tableName: "users",
 
-columns: {
-  ...BaseEntity,
-  
+  columns: {
+    ...BaseEntity,
+
     firstName: {
       name: "first_name",
       type: "varchar",

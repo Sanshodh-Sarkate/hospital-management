@@ -1,11 +1,11 @@
-const express  = require('express');
-const authController  =  require('./auth.controller');
+const express = require('express');
+const authController = require('./auth.controller');
 const validationRequest = require('../../common/middleware/validation.middleware');
-const  {registerValidation , loginValidation , forgotPasswordValidation , resetPasswordValidation, updateProfileValidation} =  require('./auth.validation')
-const authMiddleware =  require('./auth.middleware')
+const { registerValidation, loginValidation, forgotPasswordValidation, resetPasswordValidation, updateProfileValidation } = require('./auth.validation')
+const authMiddleware = require('./auth.middleware')
 
 
-// CHANGED
+//
 const router = express.Router();
 
 router.post('/register', registerValidation, validationRequest, authController.userRegister);
@@ -24,4 +24,4 @@ router.patch(
 );
 router.patch('/update-profile', authMiddleware.protect, updateProfileValidation, authController.updateProfile);
 
-module.exports = router;
+module.exports = router;

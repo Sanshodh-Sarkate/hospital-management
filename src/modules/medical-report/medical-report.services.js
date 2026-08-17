@@ -156,7 +156,7 @@ module.exports.createMedicalReport = async (reportData, user) => {
     return formatMedicalReport(savedReport);
 };
 
-// Get All Medical Reports (Role-Aware With APIFeatures)
+//: Get All Medical Reports (Role-Aware With APIFeatures)
 module.exports.getAllMedicalReports = async (user, queryString = {}) => {
     if (user.role === Roles.ADMIN || user.role === Roles.RECEPTIONIST) {
         const result = await medicalReportRepository.getAllMedicalReports(queryString);
@@ -186,7 +186,7 @@ module.exports.getMedicalReportById = async (reportId) => {
     return formatMedicalReport(medicalReport);
 };
 
-// Get My Medical Reports (Role-Aware Self-Service With APIFeatures)
+//: Get My Medical Reports (Role-Aware Self-Service With APIFeatures)
 module.exports.getMyMedicalReports = async (user, queryString = {}) => {
     if (user.role === Roles.PATIENT) {
         const patient = await patientRepository.findPatientByUserId(user.id);
@@ -218,7 +218,7 @@ module.exports.getMyMedicalReports = async (user, queryString = {}) => {
     throw new AppError("You are not authorized to access medical reports", 403);
 };
 
-// Get Medical Reports By Appointment ID (With APIFeatures)
+//: Get Medical Reports By Appointment ID (With APIFeatures)
 module.exports.getMedicalReportsByAppointmentId = async (appointmentId, queryString = {}) => {
     const appointment = await appointmentRepository.getAppointmentById(appointmentId);
     if (!appointment) {

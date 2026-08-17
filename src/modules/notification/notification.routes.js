@@ -1,4 +1,4 @@
-// CHANGED
+//
 const express = require("express");
 const router = express.Router();
 const notificationController = require("./notification.controller");
@@ -10,7 +10,7 @@ const { validateQueryFeatures } = require("../../common/middleware/query-validat
 // Require authentication for all notification routes
 router.use(authMiddleware.protect);
 
-// CHANGED: 1. Get My Notifications (Supports APIFeatures query parameters)
+//: 1. Get My Notifications (Supports APIFeatures query parameters)
 router.get("/", validateQueryFeatures, validateRequest, notificationController.getMyNotifications);
 
 

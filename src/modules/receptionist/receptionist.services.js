@@ -190,7 +190,7 @@ module.exports.deleteReceptionist = async (receptionistId, deletedBy) => {
     // Deactivate associated User
     await userRepository.updateUserWithTransaction(
       manager,
-      receptionist.user.id, 
+      receptionist.user.id,
       {
         isActive: false,
       }
