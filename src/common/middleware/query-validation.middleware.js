@@ -1,6 +1,7 @@
 //
 const { query } = require("express-validator");
 
+
 const validateQueryFeatures = [
   query("page")
     .optional()

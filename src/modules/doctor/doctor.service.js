@@ -8,6 +8,10 @@ const { hashPassword, compareHashedPassword } = require('../../common/utils/pass
 const { checkUserUniqueness } = require('../../common/services/business-validation.service');
 const { Result } = require("express-validator");
 const Roles = require("../../common/enums/role.enum");
+const { Not, In } = require("typeorm");
+const Appointment = require("../appointments/appointment.entity");
+const AppointmentStatus = require("../../common/enums/appointment-status.enum");
+const DoctorAvailability = require("../../common/enums/doctor-availability.enum");
 
 // create the doctor only by admin 
 module.exports.createDoctor = async (doctorData, adminId) => {
@@ -242,3 +246,77 @@ module.exports.updateDoctorAvailability = async (doctorId, availabilityStatus, a
     updatedBy: adminId
   })
 }
+
+// Check Doctor Availability for Receptionists/Patients/Admins
+module.exports.checkDoctorAvailability = async (doctorId, dateTime) => {
+  const doctor = await doctorRepository.findDoctorById(doctorId);
+  if (!doctor) throw new AppError("Doctor not found", 404);
+
+  if (!doctor.isActive) {
+    return {
+      isAvailable: false,
+      reason: "Doctor profile is currently inactive",
+      doctor: {
+        id: doctor.id,
+        name: doctor.user ? `Dr. ${doctor.user.firstName} ${doctor.user.lastName}` : "N/A",
+        availabilityStatus: doctor.availabilityStatus,
+      },
+    };
+  }
+
+  if (doctor.availabilityStatus !== DoctorAvailability.AVAILABLE) {
+    return {
+      isAvailable: false,
+      reason: `Doctor is currently ${doctor.availabilityStatus}`,
+      doctor: {
+        id: doctor.id,
+        name: doctor.user ? `Dr. ${doctor.user.firstName} ${doctor.user.lastName}` : "N/A",
+        availabilityStatus: doctor.availabilityStatus,
+      },
+    };
+  }
+
+  if (dateTime) {
+    const requestedDate = new Date(dateTime);
+    if (isNaN(requestedDate.getTime())) {
+      throw new AppError("Invalid dateTime format. Must be a valid ISO date string", 400);
+    }
+
+    const appointmentRepo = AppDataSource.getRepository(Appointment);
+    const existingAppointment = await appointmentRepo.findOne({
+      where: {
+        doctor: { id: doctorId },
+        appointmentDateTime: requestedDate,
+        status: Not(In([AppointmentStatus.CANCELLED, AppointmentStatus.REJECTED])),
+      },
+    });
+
+    if (existingAppointment) {
+      return {
+        isAvailable: false,
+        reason: "Doctor already has a booked appointment at this date and time slot",
+        requestedDateTime: requestedDate.toISOString(),
+        doctor: {
+          id: doctor.id,
+          name: doctor.user ? `Dr. ${doctor.user.firstName} ${doctor.user.lastName}` : "N/A",
+          availabilityStatus: doctor.availabilityStatus,
+        },
+      };
+    }
+  }
+
+  return {
+    isAvailable: true,
+    reason: "Doctor is available for the requested time slot",
+    requestedDateTime: dateTime ? new Date(dateTime).toISOString() : null,
+    doctor: {
+      id: doctor.id,
+      name: doctor.user ? `Dr. ${doctor.user.firstName} ${doctor.user.lastName}` : "N/A",
+      availabilityStatus: doctor.availabilityStatus,
+      consultationFee: doctor.consultationFee,
+      specialization: doctor.specialization,
+      department: doctor.department ? doctor.department.departmentName : null,
+    },
+  };
+};
+

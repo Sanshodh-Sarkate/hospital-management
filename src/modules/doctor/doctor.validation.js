@@ -1,5 +1,6 @@
 const { body } = require("express-validator");
-const  DoctorAvailability =  require('../../common/enums/doctor-availability.enum')
+const DoctorAvailability = require('../../common/enums/doctor-availability.enum');
+const doctorRepository = require('./doctor.repository');
 
 
 module.exports.createDoctorValidation = [
@@ -7,12 +8,16 @@ module.exports.createDoctorValidation = [
   body("firstName")
     .trim()
     .notEmpty()
-    .withMessage("First name is required"),
+    .withMessage("First name is required")
+    .isLength({ min: 2, max: 50 })
+    .withMessage("First name must be at least 2 characters"),
 
   body("lastName")
     .trim()
     .notEmpty()
-    .withMessage("Last name is required"),
+    .withMessage("Last name is required")
+    .isLength({ min: 2, max: 50 })
+    .withMessage("Last name must be at least 2 characters"),
 
   body("email")
     .trim()
@@ -32,7 +37,9 @@ module.exports.createDoctorValidation = [
   body("phoneNumber")
     .trim()
     .notEmpty()
-    .withMessage("Phone number is required"),
+    .withMessage("Phone number is required")
+    .isLength({ min: 10, max: 10 })
+    .withMessage("Phone number must be exactly 10 digits"),
 
   // Doctor Details
   body("departmentId")
@@ -60,7 +67,14 @@ module.exports.createDoctorValidation = [
   body("licenseNumber")
     .trim()
     .notEmpty()
-    .withMessage("License number is required"),
+    .withMessage("License number is required")
+    .custom(async (licenseNumber) => {
+      const existing = await doctorRepository.findDoctorByLicenseNumber(licenseNumber);
+      if (existing) {
+        throw new Error("License number already exists");
+      }
+    }),
+
 
   body("consultationFee")
     .notEmpty()
@@ -98,13 +112,17 @@ module.exports.updateDoctorValidation = [
     .optional()
     .trim()
     .notEmpty()
-    .withMessage("First name cannot be empty"),
+    .withMessage("First name cannot be empty")
+    .isLength({ min: 2, max: 50 })
+    .withMessage("First name must be at least 2 characters"),
 
   body("lastName")
     .optional()
     .trim()
     .notEmpty()
-    .withMessage("Last name cannot be empty"),
+    .withMessage("Last name cannot be empty")
+    .isLength({ min: 2, max: 50 })
+    .withMessage("Last name must be at least 2 characters"),
 
   body("email")
     .optional()
@@ -117,7 +135,10 @@ module.exports.updateDoctorValidation = [
     .optional()
     .trim()
     .notEmpty()
-    .withMessage("Phone number cannot be empty"),
+    .withMessage("Phone number cannot be empty")
+    .isLength({ min: 10, max: 10 })
+    .withMessage("Phone number must be exactly 10 digits"),
+
 
   // Doctor Fields
   body("departmentId")

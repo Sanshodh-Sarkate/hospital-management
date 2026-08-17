@@ -19,24 +19,25 @@ const APIFeatures = require("../../common/utils/api-features.util");
 
 //: 2. Get All Appointments (Using APIFeatures Class)
 const getAllAppointments = async (queryString = {}) => {
-    const features = new APIFeatures(queryString)
-        .filter(["status", "appointmentType", "doctorId", "patientId"])
-        .search(["reason"])
-        .sort(["appointmentDateTime", "createdAt", "status"], { field: "appointmentDateTime", order: "DESC" })
-        .limitFields()
-        .paginate(10);
+  const features = new APIFeatures(queryString)
+    .filter(["status", "appointmentType", "doctorId", "patientId"])
+    .search(["reason"])
+    .sort(["appointmentDateTime", "createdAt", "status"], { field: "appointmentDateTime", order: "DESC" })
+    .limitFields()
+    .paginate(10);
 
-    const findOptions = features.getFindOptions(
-        {},
-        {
-            patient: { user: true },
-            doctor: { user: true },
-            receptionist: { user: true },
-        }
-    );
+  const findOptions = features.getFindOptions(
+    {},
+    {
+      department: true,
+      patient: { user: true },
+      doctor: { user: true },
+      receptionist: { user: true },
+    }
+  );
 
-    const [appointments, total] = await appointmentRepository.findAndCount(findOptions);
-    return features.formatResponse(appointments, total);
+  const [appointments, total] = await appointmentRepository.findAndCount(findOptions);
+  return features.formatResponse(appointments, total);
 };
 
 
@@ -49,6 +50,7 @@ const getAppointmentById = async (appointmentId) => {
             id: appointmentId,
         },
         relations: {
+            department: true,
             patient: {
                 user: true,
             },
@@ -63,6 +65,7 @@ const getAppointmentById = async (appointmentId) => {
         },
     });
 }
+
 
 // FIND THE DOCTOR APPOINTMENT inside transaction
 const findDoctorAppointment = async (manager, doctorId, appointmentDateTime) => {

@@ -68,7 +68,14 @@ const  departmentEntity  =  new EntitySchema ({
       target: "Doctor",
       inverseSide: "department",
     },
+
+    appointments: {
+      type: "one-to-many",
+      target: "Appointment",
+      inverseSide: "department",
+    },
   },
 })
+
 
 module.exports =  departmentEntity

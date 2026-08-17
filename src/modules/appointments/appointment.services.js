@@ -4,6 +4,7 @@ const appointmentRepository = require("./appointment.repository");
 const patientRepository = require("../patient/patient.repository");
 const doctorRepository = require("../doctor/doctor.repository");
 const receptionistRepository = require("../receptionist/receptionist.repository");
+const departmentRepository = require("../department/department.repository");
 const billingServices = require("../billing/billing-services");
 
 const AppError = require("../../common/errors/app.error");
@@ -13,6 +14,51 @@ const Roles = require("../../common/enums/role.enum");
 const filterObject = require("../../common/utils/filter-object.util");
 const notificationServices = require("../notification/notification.services");
 const NotificationType = require("../../common/enums/notification-type.enum");
+
+
+// Helper to parse wall-clock appointment date & time without timezone shifting
+const parseWallClockDateTime = (dateInput) => {
+  if (!dateInput) return null;
+  const str = String(dateInput).trim();
+  const match = str.match(/^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})(?::(\d{2}))?/);
+  if (match) {
+    const [, year, month, day, hours, minutes, seconds = '00'] = match;
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  }
+  return new Date(dateInput);
+};
+
+// Date Formatter Helper for Notifications (prevents timezone shift bugs)
+const formatAppointmentDate = (dateInput) => {
+  if (!dateInput) return "";
+
+  if (typeof dateInput === 'string') {
+    const match = dateInput.trim().match(/^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})/);
+    if (match) {
+      const [, year, month, day, hoursStr, minutesStr] = match;
+      let hours = parseInt(hoursStr, 10);
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12 || 12;
+      const formattedHours = String(hours).padStart(2, '0');
+      return `${day}/${month}/${year} at ${formattedHours}:${minutesStr} ${ampm}`;
+    }
+  }
+
+  const d = new Date(dateInput);
+  if (isNaN(d.getTime())) return String(dateInput);
+
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  let hours = d.getHours();
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12 || 12;
+  const formattedHours = String(hours).padStart(2, '0');
+
+  return `${day}/${month}/${year} at ${formattedHours}:${minutes} ${ampm}`;
+};
+
 
 
 // Book the appointment  
@@ -34,14 +80,30 @@ module.exports.createAppointment = async (appointmentData, user) => {
     if (!patient) throw new AppError("Patient not found", 404);
   }
 
-  // 3. Validate doctor existence
+  // 3. Validate department existence
+  if (!appointmentData.departmentId) {
+    throw new AppError("Department ID is required", 400);
+  }
+  const department = await departmentRepository.findDepartmentById(appointmentData.departmentId);
+  if (!department) throw new AppError("Department not found!", 404);
+  if (department.isActive === false) {
+    throw new AppError("Department is currently inactive", 400);
+  }
+
+  // 4. Validate doctor existence
   const doctor = await doctorRepository.findDoctorById(appointmentData.doctorId);
   if (!doctor) throw new AppError("Doctor not found!", 404);
 
-  // 4. Validate appointmentDateTime is provided, valid, and not in the past
+  // Validate doctor belongs to the specified department
+  if (doctor.department?.id && doctor.department.id !== department.id) {
+    throw new AppError("Selected doctor does not belong to the specified department", 400);
+  }
+
+  // 5. Validate appointmentDateTime is provided, valid, and not in the past
   if (!appointmentData.appointmentDateTime || isNaN(new Date(appointmentData.appointmentDateTime).getTime())) {
     throw new AppError("Invalid appointment date and time format", 400);
   }
+
   if (new Date(appointmentData.appointmentDateTime) <= new Date()) {
     throw new AppError("Appointment date and time must be in the future", 400);
   }
@@ -53,12 +115,15 @@ module.exports.createAppointment = async (appointmentData, user) => {
     "appointmentType",
     "reason"
   );
-  appointmentInfo.appointmentDateTime = new Date(appointmentData.appointmentDateTime);
+  appointmentInfo.appointmentDateTime = parseWallClockDateTime(appointmentData.appointmentDateTime);
+
 
   // Backend controlled fields
+  appointmentInfo.department = department;
   appointmentInfo.patient = patient;
   appointmentInfo.doctor = doctor;
   appointmentInfo.createdBy = { id: existingUser.id };
+
 
   // 6. Handle Receptionist profile lookup & validation
   if (user.role === Roles.RECEPTIONIST) {
@@ -118,6 +183,7 @@ module.exports.createAppointment = async (appointmentData, user) => {
       NotificationType.APPOINTMENT,
       { appointmentId: savedAppointment.id, patientId: patient.id }
     );
+
 
 
 
@@ -313,7 +379,7 @@ module.exports.confirmAppointment = async (appointmentId, user) => {
   await notificationServices.notifyUser(
     appointment.patient?.user?.id,
     "Appointment Confirmed",
-    `Your appointment with Dr. ${appointment.doctor?.user?.firstName || "Doctor"} for ${new Date(appointment.appointmentDateTime).toLocaleDateString()} has been confirmed!`,
+    `Your appointment with Dr. ${appointment.doctor?.user?.firstName || "Doctor"} for ${formatAppointmentDate(appointment.appointmentDateTime)} has been confirmed!`,
     NotificationType.APPOINTMENT,
     { appointmentId: appointment.id }
   );
@@ -322,7 +388,7 @@ module.exports.confirmAppointment = async (appointmentId, user) => {
   await notificationServices.notifyUser(
     appointment.doctor?.user?.id,
     "New Confirmed Appointment",
-    `You have a confirmed appointment with Patient ${appointment.patient?.user?.firstName || "Patient"} for ${new Date(appointment.appointmentDateTime).toLocaleDateString()}.`,
+    `You have a confirmed appointment with Patient ${appointment.patient?.user?.firstName || "Patient"} for ${formatAppointmentDate(appointment.appointmentDateTime)}.`,
     NotificationType.APPOINTMENT,
     { appointmentId: appointment.id, patientId: appointment.patient?.id }
   );
@@ -337,6 +403,7 @@ module.exports.confirmAppointment = async (appointmentId, user) => {
       { appointmentId: appointment.id, patientId: appointment.patient?.id }
     );
   }
+
 
   return confirmedAppointment;
 };

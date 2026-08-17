@@ -84,7 +84,8 @@ module.exports.CreateReceptionist = async (receptionistUSerData, adminId) => {
 }
 
 
-//: Get All Receptionists (Supports APIFeatures query parameters)
+// Get All Receptionists (Supports APIFeatures query parameters)
+
 module.exports.getAllReceptionist = async (queryString = {}) => {
   return await receptionistRepository.getAllReceptionist(queryString);
 };

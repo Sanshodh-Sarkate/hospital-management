@@ -7,6 +7,7 @@ const doctorRepository = require("../doctor/doctor.repository");
 const patientRepository = require("../patient/patient.repository");
 const filterObject = require("../../common/utils/filter-object.util");
 const Roles = require("../../common/enums/role.enum");
+const AppointmentStatus = require("../../common/enums/appointment-status.enum");
 const generateMedicalReportPdf = require('../../common/utils/medical-report.pdf');
 const logger = require('pino')();
 
@@ -27,6 +28,7 @@ const formatMedicalReport = (r) => {
         result: r.result,
         normalRange: r.normalRange || null,
         unit: r.unit || null,
+        reportCharge: Number(r.reportCharge || 0),
         reportFileUrl: r.reportFileUrl || null,
         remarks: r.remarks || null,
         generatedAt: r.generatedAt,
@@ -59,6 +61,7 @@ module.exports.createMedicalReport = async (reportData, user) => {
         normalRange,
         unit,
         remarks,
+        reportCharge,
     } = reportData;
 
     // 1. Validate authenticated doctor profile
@@ -71,6 +74,14 @@ module.exports.createMedicalReport = async (reportData, user) => {
     const appointment = await appointmentRepository.getAppointmentById(appointmentId);
     if (!appointment) {
         throw new AppError("Appointment not found", 404);
+    }
+
+    // Medical reports can ONLY be generated when appointment is CONFIRMED
+    if (appointment.status === AppointmentStatus.COMPLETED) {
+        throw new AppError("Cannot create medical reports for completed appointments", 400);
+    }
+    if (appointment.status !== AppointmentStatus.CONFIRMED) {
+        throw new AppError("Medical reports can only be generated when the appointment is CONFIRMED", 400);
     }
 
     // 3. Check authorization: Appointment must belong to this doctor
@@ -93,11 +104,13 @@ module.exports.createMedicalReport = async (reportData, user) => {
         normalRange,
         unit,
         remarks,
+        reportCharge: Number(reportCharge || 0),
         appointment: { id: appointment.id },
         patient: { id: appointment.patient.id },
         doctor: { id: doctor.id },
         generatedBy: { id: user.id },
     });
+
 
     // 6. Return complete report
     const completeReport = await medicalReportRepository.getMedicalReportById(medicalReport.id);
@@ -263,9 +276,11 @@ module.exports.updateMedicalReport = async (reportId, reportData, userId) => {
         "result",
         "normalRange",
         "unit",
+        "reportCharge",
         "reportFileUrl",
         "remarks"
     );
+
 
     if (Object.keys(updateData).length === 0) {
         throw new AppError("No valid fields provided for update", 400);

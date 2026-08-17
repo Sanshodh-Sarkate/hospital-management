@@ -75,12 +75,12 @@ const UserEntity = new EntitySchema({
       nullable: true,
     },
     passwordChangedAt: {
-      name: "password_changed_at",
-      type: "timestamp",
-      nullable: true,
-    },
-    //
+    name: "password_changed_at",
+    type: "timestamp",
+    nullable: true,
+},
     refreshTokenHash: {
+
       name: "refresh_token_hash",
       type: "varchar",
       length: 255,
