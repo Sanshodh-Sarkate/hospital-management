@@ -79,7 +79,16 @@ columns: {
     type: "timestamp",
     nullable: true,
 },
+    // CHANGED
+    refreshTokenHash: {
+      name: "refresh_token_hash",
+      type: "varchar",
+      length: 255,
+      nullable: true,
+      select: false,
+    },
   },
+
 
   relations: {
     doctor: {

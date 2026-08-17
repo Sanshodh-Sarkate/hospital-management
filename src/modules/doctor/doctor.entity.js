@@ -109,19 +109,8 @@ module.exports = new EntitySchema({
       type: "boolean",
       default: true,
     },
-
-    createdBy: {
-      name: "created_by",
-      type: "uuid",
-      nullable: false,
-    },
-
-    updatedBy: {
-      name: "updated_by",
-      type: "uuid",
-      nullable: true,
-    },
   },
+
 
  relations: {
     user: {

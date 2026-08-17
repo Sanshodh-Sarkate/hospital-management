@@ -107,7 +107,9 @@ module.exports.generateBillingForAppointment = async (appointmentId, manager) =>
 
 
      // 3. Fetch related Medical Reports
-   const medicalReports = await medicalReportRepository.getMedicalReportsByAppointmentId(appointmentId);
+   // CHANGED: Unwrap items array from paginated APIFeatures response object
+   const reportsResult = await medicalReportRepository.getMedicalReportsByAppointmentId(appointmentId);
+   const medicalReports = Array.isArray(reportsResult) ? reportsResult : (reportsResult?.items || []);
 
    const billingItems  = [] ;
 
@@ -123,7 +125,8 @@ module.exports.generateBillingForAppointment = async (appointmentId, manager) =>
 
   
   // Items 2..N: Medical Report Charges (where reportCharge > 0)
-  for (const report of medicalReports || []) {
+  for (const report of medicalReports) {
+
     const charge = Number(report.reportCharge || 0);
     if (charge > 0) {
       billingItems.push({

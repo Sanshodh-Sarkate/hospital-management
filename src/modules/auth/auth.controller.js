@@ -1,9 +1,11 @@
- const authService =  require('./auth.service');
- const asyncHandler =  require('../../common/utils/async-handler');
- const { sendSuccess } = require('../../common/utils/response.util');
+// CHANGED
+const authService = require('./auth.service');
+const asyncHandler = require('../../common/utils/async-handler');
+const { sendSuccess } = require('../../common/utils/response.util');
+const AppError = require('../../common/errors/app.error');
 
-// Helper to set JWT cookie
-const sendTokenCookie = (res, token) => {
+// Helper to set HTTP-Only Refresh Token Cookie
+const sendRefreshTokenCookie = (res, refreshToken) => {
   const cookieExpiresInDays = parseFloat(process.env.JWT_COOKIE_EXPIRES_IN) || 7;
   const cookieOptions = {
     expires: new Date(
@@ -14,72 +16,122 @@ const sendTokenCookie = (res, token) => {
     sameSite: 'lax',
   };
 
-  res.cookie('jwt', token, cookieOptions);
+  res.cookie('refreshToken', refreshToken, cookieOptions);
 };
 
-module.exports.userRegister = asyncHandler(async(req , res , next) => {
-    console.log(req.body)
-    const result =  await authService.registerUser(req.body);
+// Helper to clear Refresh Token Cookie
+const clearRefreshTokenCookie = (res) => {
+  res.cookie('refreshToken', '', {
+    expires: new Date(0),
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+  });
+  res.cookie('jwt', 'loggedout', {
+    expires: new Date(0),
+    httpOnly: true,
+  });
+};
 
-    sendTokenCookie(res, result.token);
+module.exports.userRegister = asyncHandler(async (req, res, next) => {
+  console.log(req.body);
+  const result = await authService.registerUser(req.body);
 
-    return sendSuccess(res, 201, "User registered successfully", result);
- });
+  sendRefreshTokenCookie(res, result.refreshToken);
 
- module.exports.loginUser = asyncHandler(async(req  , res , next) => {
-    console.log(req.body);
-    
-    const  loginUser  = await authService.loginUser(req.body);
-    console.log("loginUser" , loginUser)
+  const responseData = {
+    user: result.registerNewUser,
+    accessToken: result.accessToken,
+  };
 
-    sendTokenCookie(res, loginUser.token);
-    
-    return sendSuccess(res, 200, "User logged in successfully", loginUser);
- })
+  return sendSuccess(res, 201, "User registered successfully", responseData);
+});
 
- module.exports.logoutUser = asyncHandler(async(req, res, next) => {
-    res.cookie('jwt', 'loggedout', {
-      expires: new Date(Date.now() + 10 * 1000),
-      httpOnly: true,
-    });
+module.exports.loginUser = asyncHandler(async (req, res, next) => {
+  console.log(req.body);
 
-    return sendSuccess(res, 200, "User logged out successfully");
- })
+  const loginUser = await authService.loginUser(req.body);
+  console.log("loginUser", loginUser);
 
- module.exports.profile =  asyncHandler(async(req , res  , next) => {
-    const currentUser  = await authService.getProfile(req.user);
-    return sendSuccess(res, 200, "User Profile", currentUser);
- })
+  sendRefreshTokenCookie(res, loginUser.refreshToken);
 
- module.exports.changePassword = asyncHandler(async(req, res , next) => {
-    console.log(req.user.id);
-    const data  =  await authService.changePassword(req.user ,  req.body);
+  const responseData = {
+    user: loginUser.user,
+    accessToken: loginUser.accessToken,
+  };
 
-    return sendSuccess(res, 200, "Password changed successfully", data);
- })
+  return sendSuccess(res, 200, "User logged in successfully", responseData);
+});
 
- module.exports.forgotPassword =asyncHandler(async  (req , res  , next) => {
-    const {email} =  req.body;
+// CHANGED: Refresh Token Controller
+module.exports.refreshToken = asyncHandler(async (req, res, next) => {
+  const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
 
-    const data =   await authService.forgatePassword(email);
+  if (!refreshToken) {
+    throw new AppError("Refresh token is required", 401);
+  }
 
-    return sendSuccess(res, 200, "ResetToken send on your registered email");
- })
+  const result = await authService.refreshAccessToken(refreshToken);
 
- module.exports.resetPassword = asyncHandler(async (req, res ,  next) => {
+  // Send rotated new Refresh Token in HTTP-only cookie
+  sendRefreshTokenCookie(res, result.refreshToken);
+
+  const responseData = {
+    accessToken: result.accessToken,
+  };
+
+
+  return sendSuccess(res, 200, "Access token refreshed successfully", responseData);
+});
+
+// CHANGED: Logout Controller
+module.exports.logoutUser = asyncHandler(async (req, res, next) => {
+  const userId = req.user?.id;
+  await authService.logoutUser(userId);
+
+  clearRefreshTokenCookie(res);
+
+  return sendSuccess(res, 200, "User logged out successfully");
+});
+
+module.exports.profile = asyncHandler(async (req, res, next) => {
+  const currentUser = await authService.getProfile(req.user);
+  return sendSuccess(res, 200, "User Profile", currentUser);
+});
+
+module.exports.changePassword = asyncHandler(async (req, res, next) => {
+  console.log(req.user.id);
+  const data = await authService.changePassword(req.user, req.body);
+  
+  clearRefreshTokenCookie(res);
+
+  return sendSuccess(res, 200, "Password changed successfully", data);
+});
+
+module.exports.forgotPassword = asyncHandler(async (req, res, next) => {
+  const { email } = req.body;
+
+  const data = await authService.forgatePassword(email);
+
+  return sendSuccess(res, 200, "ResetToken send on your registered email");
+});
+
+module.exports.resetPassword = asyncHandler(async (req, res, next) => {
   const result = await authService.resetPassword(
     req.params.token,
     req.body
   );
 
+  clearRefreshTokenCookie(res);
+
   return sendSuccess(res, 200, result.message);
 });
 
+module.exports.updateProfile = asyncHandler(async (req, res, next) => {
+  const data = await authService.updateProfile(req.user.id, req.body);
+  return sendSuccess(res, 200, "user data update successFully", data);
+});
 
-  module.exports.updateProfile = asyncHandler(async(req , res , next) => {
-    const data = await authService.updateProfile(req.user.id ,  req.body);
-    return sendSuccess(res, 200, "user data update successFully", data);
-  });
 
 
  
