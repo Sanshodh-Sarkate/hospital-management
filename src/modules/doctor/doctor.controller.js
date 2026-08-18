@@ -21,13 +21,19 @@ module.exports.getMyProfile = asyncHandler(async (req, res, next) => {
     return sendSuccess(res, 200, "Doctor profile retrieved successfully", { doctor });
 });
 
-//: Get My Doctor Appointments (Supports APIFeatures query parameters)
+//: Update My Doctor Profile
+module.exports.updateMyProfile = asyncHandler(async (req, res, next) => {
+    const updatedDoctor = await doctorServices.updateMyDoctorProfile(req.user.id, req.body);
+    return sendSuccess(res, 200, "Doctor profile updated successfully", updatedDoctor);
+});
+
+//: Get My Doctor Appointments
 module.exports.getMyAppointments = asyncHandler(async (req, res, next) => {
     const appointments = await doctorServices.getMyDoctorAppointments(req.user, req.query);
     return sendPaginated(res, 200, "Doctor appointments retrieved successfully", appointments);
 });
 
-//: Get All Doctors (Supports APIFeatures query parameters)
+//: Get All Doctors 
 module.exports.getAllDoctors = asyncHandler(async (req, res, next) => {
     const doctors = await doctorServices.getAllDoctors(req.query);
     return sendPaginated(res, 200, "Doctors fetched successfully", doctors);

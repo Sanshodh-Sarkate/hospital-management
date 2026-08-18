@@ -100,6 +100,61 @@ module.exports.getMyDoctorProfile = async (userId) => {
   return doctor;
 };
 
+//: Update My Doctor Profile (Doctor Self-Service with Transaction & filterObject)
+module.exports.updateMyDoctorProfile = async (userId, updatedDoctorData) => {
+  const doctor = await doctorRepository.findDoctorByUserId(userId);
+  if (!doctor) throw new AppError("Doctor profile not found", 404);
+
+  // Check email and phone uniqueness
+  await checkUserUniqueness({
+    email: updatedDoctorData.email,
+    phoneNumber: updatedDoctorData.phoneNumber,
+    excludeUserId: doctor.user.id,
+  });
+
+  // Check department if updated
+  if (updatedDoctorData.departmentId && updatedDoctorData.departmentId !== doctor.departmentId) {
+    const department = await departmentRepository.findDepartmentById(updatedDoctorData.departmentId);
+    if (!department) throw new AppError("Department not found", 404);
+  }
+
+  // Database Transaction to update both users & doctors tables atomically
+  return await AppDataSource.transaction(async (manager) => {
+    // 1. Separate user table fields
+    const userData = filterObject(
+      updatedDoctorData,
+      "firstName",
+      "lastName",
+      "phoneNumber"
+    );
+
+    if (Object.keys(userData).length > 0) {
+      await userRepository.updateUserWithTransaction(manager, doctor.user.id, userData);
+    }
+
+    // 2. Separate doctor table fields (Excluding consultationFee - only Admin can alter fees)
+    const doctorData = filterObject(
+      updatedDoctorData,
+      "departmentId",
+      "specialization",
+      "qualification",
+      "experienceYears",
+      "gender",
+      "dateOfBirth",
+      "address",
+      "emergencyContact",
+      "profileImage",
+      "bio",
+      "availabilityStatus"
+    );
+
+    doctorData.updatedBy = userId;
+
+    const updatedDoctor = await doctorRepository.updateDoctorWithTransaction(manager, doctor.id, doctorData);
+    return updatedDoctor;
+  });
+};
+
 //: Get My Doctor Appointments (With APIFeatures)
 module.exports.getMyDoctorAppointments = async (user, queryString = {}) => {
   const doctor = await doctorRepository.findDoctorByUserId(user.id);

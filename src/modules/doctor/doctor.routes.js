@@ -27,6 +27,16 @@ router.get(
   doctorController.getMyProfile
 );
 
+//  Update Doctor Self Profile
+router.patch(
+  "/me",
+  authMiddleware.protect,
+  authMiddleware.restrictTo("DOCTOR"),
+  doctorValidations.updateDoctorValidation,
+  validationRequest,
+  doctorController.updateMyProfile
+);
+
 //  Get Doctor Self Appointments Schedule (With APIFeatures)
 router.get(
   "/me/appointments",

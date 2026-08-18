@@ -21,8 +21,26 @@ router.get(
   receptionistController.getReceptionistDashboard
 );
 
+// Receptionist Self Profile Routes
+router.get(
+  "/me",
+  authMiddleware.protect,
+  authMiddleware.restrictTo("RECEPTIONIST"),
+  receptionistController.getMyProfile
+);
+
+// receptinist update own profile  
+router.patch(
+  "/me",
+  authMiddleware.protect,
+  authMiddleware.restrictTo("RECEPTIONIST"),
+  receptionistValidations.updateReceptionistValidation,
+  validationRequest,
+  receptionistController.updateMyProfile
+);
+
 // Get All Receptionists (Supports APIFeatures query parameters)
-router.get('/' ,  authMiddleware.protect ,  authMiddleware.restrictTo("ADMIN") , validateQueryFeatures, validationRequest, receptionistController.getAllReceptionists);
+router.get('/', authMiddleware.protect, authMiddleware.restrictTo("ADMIN"), validateQueryFeatures, validationRequest, receptionistController.getAllReceptionists);
 
 
 

@@ -20,8 +20,26 @@ const hospitalRoutes = require("./modules/hospital/hospital.routes");
 
 
 const cookieParser = require('cookie-parser');
+const rateLimit = require('express-rate-limit');
 
 const app  = express();
+
+// 100 requests per 15 minutes window
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  limit: 50, 
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many requests from this IP, please try again after 15 minutes",
+    errors: null,
+  },
+});
+
+// Apply rate limiter to all /api endpoints
+app.use('/api', limiter);
+
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(
