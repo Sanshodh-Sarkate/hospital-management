@@ -81,9 +81,14 @@ module.exports.getPatientById = async (patientId) => {
 }
 
 
-module.exports.updatePatient = async (patientId, patientUpdatedData, logginUserId) => {
+module.exports.updatePatient = async (patientId, patientUpdatedData, logginUserId, userRole = Roles.PATIENT) => {
   const patient = await patientRepository.getPatientById(patientId);
-  if (!patient) throw new AppError("Patient was not found", 404)
+  if (!patient) throw new AppError("Patient was not found", 404);
+
+  // Security Check: Patient role can ONLY update their own profile!
+  if (userRole === Roles.PATIENT && patient.user?.id !== logginUserId) {
+    throw new AppError("You are not authorized to update another patient's profile", 403);
+  }
 
   // check email and phone uniqueness
   await checkUserUniqueness({

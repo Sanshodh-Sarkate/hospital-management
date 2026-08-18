@@ -105,14 +105,19 @@ const updateAppointmentWithTransaction = async (manager, appointmentId, appointm
             id: appointmentId
         },
         relations: {
-            patient: true,
-            doctor: true,
+            department: true,
+            patient: {
+                user: true
+            },
+            doctor: {
+                user: true
+            },
             receptionist: true,
             createdBy: true,
             updatedBy: true,
         },
-    })
-}
+    });
+};
 
 
 //: Get Appointments by Patient ID (With APIFeatures & Patient Authorization Scope)

@@ -190,7 +190,30 @@ module.exports.createAppointment = async (appointmentData, user) => {
 
 
 
-    return savedAppointment;
+    return {
+      id: savedAppointment.id,
+      appointmentDateTime: savedAppointment.appointmentDateTime,
+      appointmentType: savedAppointment.appointmentType,
+      status: savedAppointment.status,
+      reason: savedAppointment.reason,
+      consultationNotes: savedAppointment.consultationNotes || null,
+      cancellationReason: savedAppointment.cancellationReason || null,
+      department: {
+        id: department.id,
+        departmentName: department.departmentName,
+      },
+      patient: {
+        id: patient.id,
+        name: patient.user ? `${patient.user.firstName} ${patient.user.lastName}`.trim() : "N/A",
+        phoneNumber: patient.user?.phoneNumber || null,
+      },
+      doctor: {
+        id: doctor.id,
+        name: doctor.user ? `Dr. ${doctor.user.firstName} ${doctor.user.lastName}`.trim() : "N/A",
+        specialization: doctor.specialization || null,
+      },
+      createdAt: savedAppointment.createdAt,
+    };
   });
 };
 
@@ -408,7 +431,30 @@ module.exports.confirmAppointment = async (appointmentId, user) => {
   }
 
 
-  return confirmedAppointment;
+  return {
+    id: confirmedAppointment.id,
+    appointmentDateTime: confirmedAppointment.appointmentDateTime,
+    appointmentType: confirmedAppointment.appointmentType,
+    status: confirmedAppointment.status,
+    reason: confirmedAppointment.reason,
+    consultationNotes: confirmedAppointment.consultationNotes || null,
+    cancellationReason: confirmedAppointment.cancellationReason || null,
+    patient: {
+      id: confirmedAppointment.patient?.id,
+      name: confirmedAppointment.patient?.user
+        ? `${confirmedAppointment.patient.user.firstName} ${confirmedAppointment.patient.user.lastName}`.trim()
+        : "N/A",
+      phoneNumber: confirmedAppointment.patient?.user?.phoneNumber || null,
+    },
+    doctor: {
+      id: confirmedAppointment.doctor?.id,
+      name: confirmedAppointment.doctor?.user
+        ? `Dr. ${confirmedAppointment.doctor.user.firstName} ${confirmedAppointment.doctor.user.lastName}`.trim()
+        : "N/A",
+      specialization: confirmedAppointment.doctor?.specialization || null,
+    },
+    updatedAt: confirmedAppointment.updatedAt,
+  };
 };
 
 

@@ -65,10 +65,9 @@ module.exports.getMyAppointments = asyncHandler(async (req, res, next) => {
         res,
         200,
         "Your appointments fetched successfully",
-        { appointments },
-        { results: appointments.length }
+        appointments
     );
-})
+});
 
 
 module.exports.completeAppointment = asyncHandler(async (req, res, next) => {

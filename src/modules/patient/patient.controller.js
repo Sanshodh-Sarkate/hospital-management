@@ -21,7 +21,7 @@ module.exports.getPatientById = asyncHandler(async (req, res, next) => {
 });
 
 module.exports.updatePatient = asyncHandler(async (req, res, next) => {
-    const updatedPatient = await patientServices.updatePatient(req.params.id, req.body, req.user.id);
+    const updatedPatient = await patientServices.updatePatient(req.params.id, req.body, req.user.id, req.user.role);
     return sendSuccess(res, 200, "Patient updated successfully", updatedPatient);
 });
 
