@@ -1,6 +1,7 @@
 const userRepository = require("../user/user.repository");
 const departmentRepository = require('../department/department.repository')
 const doctorRepository = require('./doctor.repository');
+const appointmentRepository = require('../appointments/appointment.repository');
 const AppDataSource = require("../../config/db");
 const AppError = require('../../common/errors/app.error')
 const filterObject = require("../../common/utils/filter-object.util")
@@ -318,5 +319,33 @@ module.exports.checkDoctorAvailability = async (doctorId, dateTime) => {
       department: doctor.department ? doctor.department.departmentName : null,
     },
   };
+};
+
+module.exports.getDoctorAppointmentsById = async (doctorId, queryString = {}) => {
+  const doctor = await doctorRepository.findDoctorById(doctorId);
+  if (!doctor) throw new AppError("Doctor not found", 404);
+
+  const queryWithDoctor = { ...queryString, doctorId };
+  const result = await appointmentRepository.getAllAppointments(queryWithDoctor);
+
+  result.items = (result.items || []).map((apt) => ({
+    id: apt.id,
+    appointmentDateTime: apt.appointmentDateTime,
+    appointmentType: apt.appointmentType,
+    status: apt.status,
+    reason: apt.reason,
+    consultationNotes: apt.consultationNotes || null,
+    cancellationReason: apt.cancellationReason || null,
+    patient: {
+      id: apt.patient?.id,
+      name: apt.patient?.user ? `${apt.patient.user.firstName} ${apt.patient.user.lastName}`.trim() : "N/A",
+      gender: apt.patient?.gender || null,
+      phoneNumber: apt.patient?.user?.phoneNumber || apt.patient?.emergencyContactNumber || null,
+    },
+    department: apt.department?.departmentName || null,
+    createdAt: apt.createdAt,
+  }));
+
+  return result;
 };
 

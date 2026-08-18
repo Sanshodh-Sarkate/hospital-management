@@ -14,6 +14,7 @@ const Roles = require("../../common/enums/role.enum");
 const filterObject = require("../../common/utils/filter-object.util");
 const notificationServices = require("../notification/notification.services");
 const NotificationType = require("../../common/enums/notification-type.enum");
+const { parseDate } = require("../../common/utils/date.util");
 
 
 // Helper to parse wall-clock appointment date & time without timezone shifting
@@ -100,22 +101,18 @@ module.exports.createAppointment = async (appointmentData, user) => {
   }
 
   // 5. Validate appointmentDateTime is provided, valid, and not in the past
-  if (!appointmentData.appointmentDateTime || isNaN(new Date(appointmentData.appointmentDateTime).getTime())) {
-    throw new AppError("Invalid appointment date and time format", 400);
-  }
-
-  if (new Date(appointmentData.appointmentDateTime) <= new Date()) {
+  const appointmentDateTime = parseDate(appointmentData.appointmentDateTime);
+  if (appointmentDateTime <= new Date()) {
     throw new AppError("Appointment date and time must be in the future", 400);
   }
 
   // 5. Prepare Appointment Data using filterObject
   const appointmentInfo = filterObject(
     appointmentData,
-    "appointmentDateTime",
     "appointmentType",
     "reason"
   );
-  appointmentInfo.appointmentDateTime = parseWallClockDateTime(appointmentData.appointmentDateTime);
+  appointmentInfo.appointmentDateTime = appointmentDateTime;
 
 
   // Backend controlled fields
@@ -147,9 +144,12 @@ module.exports.createAppointment = async (appointmentData, user) => {
     const existingDoctorAppointment = await appointmentRepository.findDoctorAppointment(
       manager,
       appointmentData.doctorId,
-      appointmentData.appointmentDateTime
+      appointmentDateTime
     );
-    if (existingDoctorAppointment && existingDoctorAppointment.status !== AppointmentStatus.CANCELLED) {
+    if (
+      existingDoctorAppointment &&
+      [AppointmentStatus.PENDING, AppointmentStatus.CONFIRMED, AppointmentStatus.RESCHEDULED].includes(existingDoctorAppointment.status)
+    ) {
       throw new AppError("Doctor is already booked for this date and time slot", 409);
     }
 
@@ -157,9 +157,12 @@ module.exports.createAppointment = async (appointmentData, user) => {
     const existingPatientAppointment = await appointmentRepository.findPatientAppointment(
       manager,
       patient.id,
-      appointmentData.appointmentDateTime
+      appointmentDateTime
     );
-    if (existingPatientAppointment && existingPatientAppointment.status !== AppointmentStatus.CANCELLED) {
+    if (
+      existingPatientAppointment &&
+      [AppointmentStatus.PENDING, AppointmentStatus.CONFIRMED, AppointmentStatus.RESCHEDULED].includes(existingPatientAppointment.status)
+    ) {
       throw new AppError("Patient already has an appointment booked at this date and time slot", 409);
     }
 
@@ -777,5 +780,55 @@ module.exports.processUnattendedAppointmentsEscalation = async () => {
   } catch (error) {
     console.error("Error processing appointment escalation pipeline:", error.message);
   }
+};
+
+// Add or Update Consultation Notes (Doctor / Admin)
+module.exports.addConsultationNotes = async (appointmentId, consultationNotes, user) => {
+  const appointment = await appointmentRepository.getAppointmentById(appointmentId);
+  if (!appointment) throw new AppError("Appointment not found", 404);
+
+  // If Doctor role, verify doctor is assigned to this appointment
+  if (user.role === Roles.DOCTOR) {
+    const doctor = await doctorRepository.findDoctorByUserId(user.id);
+    if (!doctor || appointment.doctor?.id !== doctor.id) {
+      throw new AppError("You do not have permission to add consultation notes for this appointment", 403);
+    }
+  }
+
+  const appointmentInfo = {
+    consultationNotes: consultationNotes.trim(),
+    updatedBy: {
+      id: user.id,
+    },
+  };
+
+  //update the appointments  
+  const updatedAppointment = await AppDataSource.transaction(async (manager) => {
+    return await appointmentRepository.updateAppointmentWithTransaction(manager, appointmentId, appointmentInfo);
+  });
+
+  return updatedAppointment;
+};
+
+// Get Doctor Details linked to an Appointment
+module.exports.getDoctorByAppointmentId = async (appointmentId) => {
+  const appointment = await appointmentRepository.getAppointmentById(appointmentId);
+  if (!appointment) throw new AppError("Appointment not found", 404);
+
+  if (!appointment.doctor) throw new AppError("Doctor profile not found for this appointment", 404);
+
+  const doc = appointment.doctor;
+  return {
+    id: doc.id,
+    name: doc.user ? `Dr. ${doc.user.firstName} ${doc.user.lastName}`.trim() : "N/A",
+    email: doc.user?.email || null,
+    phoneNumber: doc.user?.phoneNumber || null,
+    specialization: doc.specialization || null,
+    qualification: doc.qualification || null,
+    experienceYears: doc.experienceYears || null,
+    consultationFee: doc.consultationFee || null,
+    availabilityStatus: doc.availabilityStatus || null,
+    department: doc.department ? doc.department.departmentName : null,
+  };
 };
 

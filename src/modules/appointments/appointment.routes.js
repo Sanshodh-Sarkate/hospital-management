@@ -36,6 +36,11 @@ router.get('/:id',
   authMiddleware.restrictTo("ADMIN", "RECEPTIONIST"),
   appointmentController.getAppointmentById)
 
+// Get Doctor Details linked to an Appointment
+router.get('/:id/doctor',
+  authMiddleware.protect,
+  appointmentController.getDoctorByAppointmentId)
+
 
 router.patch(
   "/:id",
@@ -111,6 +116,17 @@ router.patch(
 );
 
 
+
+// Add / Update Consultation Notes
+// Doctor, Admin (PATIENTS CANNOT ACCESS)
+router.patch(
+  "/:id/consultation-notes",
+  authMiddleware.protect,
+  authMiddleware.restrictTo("DOCTOR", "ADMIN"),
+  appointmentValidation.addConsultationNotesValidation,
+  validationRequest,
+  appointmentController.addConsultationNotes
+);
 
 // Complete Appointment
 // Doctor

@@ -66,6 +66,12 @@ module.exports.checkDoctorAvailability = asyncHandler(async (req, res) => {
     return sendSuccess(res, 200, "Doctor availability checked successfully", result);
 });
 
+// Get Appointments By Doctor ID
+module.exports.getDoctorAppointmentsById = asyncHandler(async (req, res) => {
+    const appointments = await doctorServices.getDoctorAppointmentsById(req.params.id, req.query);
+    return sendPaginated(res, 200, "Doctor appointments retrieved successfully", appointments);
+});
+
 
 
 
