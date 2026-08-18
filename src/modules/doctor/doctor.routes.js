@@ -51,6 +51,14 @@ router.get(
 router.get('/', authMiddleware.protect, validateQueryFeatures, validationRequest, doctorController.getAllDoctors);
 
 
+// Check Doctor Availability for a specific date and time slot (Receptionists / Patients / Admins / Doctors)
+router.get(
+  "/:id/check-availability",
+  authMiddleware.protect,
+  authMiddleware.restrictTo("ADMIN", "RECEPTIONIST", "PATIENT", "DOCTOR"),
+  doctorController.checkDoctorAvailability
+);
+
 router.get('/:id', authMiddleware.protect, doctorController.getDoctorById);
 
 // Get Appointments by Doctor ID (Admin, Receptionist, Doctor)
