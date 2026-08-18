@@ -11,6 +11,7 @@ const router = express.Router();
 
 // Specific routes must come before parameterized routes (/:id)
 router.get('/me', authMiddleware.protect, authMiddleware.restrictTo("PATIENT"), patientController.getMyProfile);
+
 router.patch('/me', authMiddleware.protect, authMiddleware.restrictTo("PATIENT"), patientValidations.updatePatientValidation, validationRequest, patientController.updateMyProfile);
 
 //
