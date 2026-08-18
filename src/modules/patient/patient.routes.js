@@ -9,6 +9,14 @@ const appointmentValidations = require('../appointments/appointment.validation')
 
 const router = express.Router();
 
+// Public Patient Self-Registration Route (No token required - Inserts into both users & patients tables)
+router.post(
+  '/register',
+  patientValidations.registerPatientSelfValidation,
+  validationRequest,
+  patientController.registerPatientSelf
+);
+
 // Specific routes must come before parameterized routes (/:id)
 router.get('/me', authMiddleware.protect, authMiddleware.restrictTo("PATIENT"), patientController.getMyProfile);
 

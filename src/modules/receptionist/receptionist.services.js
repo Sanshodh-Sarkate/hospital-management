@@ -140,9 +140,31 @@ module.exports.CreateReceptionist = async (receptionistUSerData, adminId) => {
     receptionistInfo.createdBy = { id: adminId };
 
     const newReceptionist = await receptionistRepository.registerReceptionist(manager, receptionistInfo);
+
     return {
-      newUser,
-      newReceptionist
+      receptionist: {
+        id: newReceptionist.id,
+        employeeId: newReceptionist.employeeId,
+        gender: newReceptionist.gender,
+        dateOfBirth: newReceptionist.dateOfBirth,
+        joiningDate: newReceptionist.joiningDate,
+        shift: newReceptionist.shift,
+        address: newReceptionist.address,
+        city: newReceptionist.city,
+        state: newReceptionist.state,
+        country: newReceptionist.country,
+        postalCode: newReceptionist.postalCode,
+        profileImage: newReceptionist.profileImage,
+        user: {
+          id: newUser.id,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
+          email: newUser.email,
+          phoneNumber: newUser.phoneNumber,
+          role: newUser.role,
+        },
+        createdAt: newReceptionist.createdAt,
+      },
     };
   })
 }

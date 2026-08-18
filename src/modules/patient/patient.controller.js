@@ -3,6 +3,20 @@ const patientServices = require('./patient.service');
 const asyncHandler = require('../../common/utils/async-handler');
 const { sendSuccess, sendPaginated } = require('../../common/utils/response.util');
 
+// Public Patient Self-Registration (With Cookie & Token Response)
+module.exports.registerPatientSelf = asyncHandler(async (req, res, next) => {
+    const result = await patientServices.registerPatientSelf(req.body);
+    
+    res.cookie('refreshToken', result.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+    return sendSuccess(res, 201, "Patient account created successfully", result);
+});
+
 module.exports.registerPatient = asyncHandler(async (req, res, next) => {
     const patient = await patientServices.registerPatient(req.body, req.user.id);
     return sendSuccess(res, 201, "Patient created successfully", patient);

@@ -13,7 +13,7 @@ const parseDate = (dateInput) => {
     throw new AppError("Date and time is required", 400);
   }
 
-  let dateString =  typeof dateInput === "string" ? dateInput.trim() : dateInput;
+  let dateString = typeof dateInput === "string" ? dateInput.trim() : dateInput;
 
   // If input string ends with 'Z' (e.g. "2026-08-19T23:45:00.000Z"),
   // strip 'Z' so it is parsed as the intended local wall-clock time

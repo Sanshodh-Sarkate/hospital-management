@@ -228,3 +228,75 @@ module.exports.updatePatientValidation = [
     .optional()
     .trim(),
 ];
+
+// Patient Self-Registration Validation (Public Signup)
+module.exports.registerPatientSelfValidation = [
+  body("firstName")
+    .trim()
+    .notEmpty()
+    .withMessage("First name is required")
+    .isLength({ min: 2, max: DB.NAME_MAX_LENGTH })
+    .withMessage("First name must be at least 2 characters"),
+
+  body("lastName")
+    .trim()
+    .notEmpty()
+    .withMessage("Last name is required")
+    .isLength({ min: 2, max: DB.NAME_MAX_LENGTH })
+    .withMessage("Last name must be at least 2 characters"),
+
+  body("email")
+    .trim()
+    .notEmpty()
+    .withMessage("Email is required")
+    .isEmail()
+    .withMessage("Invalid email address")
+    .isLength({ max: DB.EMAIL_MAX_LENGTH })
+    .withMessage(`Email cannot exceed ${DB.EMAIL_MAX_LENGTH} characters`)
+    .toLowerCase(),
+
+  body("password")
+    .notEmpty()
+    .withMessage("Password is required")
+    .isLength({ min: 6, max: DB.PASSWORD_MAX_LENGTH })
+    .withMessage(`Password must be at least 6 characters`),
+
+  body("phoneNumber")
+    .trim()
+    .notEmpty()
+    .withMessage("Phone number is required")
+    .isLength({ min: 10, max: 10 })
+    .withMessage("Phone number must be exactly 10 digits"),
+
+  // Optional Patient Profile Fields
+  body("dateOfBirth")
+    .optional()
+    .isISO8601()
+    .withMessage("Invalid date format"),
+
+  body("gender")
+    .optional()
+    .isIn(Object.values(Gender))
+    .withMessage("Invalid gender"),
+
+  body("bloodGroup")
+    .optional()
+    .isIn(Object.values(BloodGroup))
+    .withMessage("Invalid blood group"),
+
+  body("address").optional().trim(),
+  body("city").optional().trim(),
+  body("state").optional().trim(),
+  body("country").optional().trim(),
+  body("postalCode").optional().trim(),
+  body("emergencyContactName").optional().trim(),
+  body("emergencyContactNumber")
+    .optional()
+    .trim()
+    .isLength({ min: 10, max: 10 })
+    .withMessage("Emergency contact number must be 10 digits"),
+  body("emergencyContactRelation").optional().trim(),
+  body("insuranceProvider").optional().trim(),
+  body("insurancePolicyNumber").optional().trim(),
+  body("profileImage").optional().trim(),
+];
