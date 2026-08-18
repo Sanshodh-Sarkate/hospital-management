@@ -1,0 +1,5 @@
+module.exports = {
+  AVAILABLE: "AVAILABLE",
+  ON_LEAVE: "ON_LEAVE",
+  UNAVAILABLE: "UNAVAILABLE",
+};

@@ -1,0 +1,6 @@
+module.exports = {
+  APPOINTMENT: "APPOINTMENT",
+  PAYMENT: "PAYMENT",
+  BILLING: "BILLING",
+  SYSTEM: "SYSTEM",
+};
