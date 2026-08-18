@@ -211,7 +211,7 @@ module.exports.updateDoctorValidation = [
 ];
 
 module.exports.updateAvailabilityValidation = [
-   body("availabilityStatus")
+  body("availabilityStatus")
     .notEmpty()
     .withMessage("Availability status is required")
     .isIn(Object.values(DoctorAvailability))

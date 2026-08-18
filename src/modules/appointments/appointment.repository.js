@@ -4,6 +4,7 @@ const Appointment = require("./appointment.entity")
 const { LessThanOrEqual, IsNull, Not } = require("typeorm");
 const AppointmentStatus = require("../../common/enums/appointment-status.enum");
 const appointmentStatusEnum = require("../../common/enums/appointment-status.enum");
+const { parseDate } = require("../../common/utils/date.util");
 const appointmentRepository = AppDataSource.getRepository(Appointment);
 
 
@@ -70,28 +71,30 @@ const getAppointmentById = async (appointmentId) => {
 // FIND THE DOCTOR APPOINTMENT inside transaction
 const findDoctorAppointment = async (manager, doctorId, appointmentDateTime) => {
     const repository = manager.getRepository(Appointment);
+    const dateObj = parseDate(appointmentDateTime);
     return await repository.findOne({
         where: {
             doctor: {
                 id: doctorId
             },
-            appointmentDateTime: new Date(appointmentDateTime),
+            appointmentDateTime: dateObj,
         }
-    })
-}
+    });
+};
 
 // FIND THE PATIENT APPOINTMENT inside transaction
 const findPatientAppointment = async (manager, patientId, appointmentDateTime) => {
     const repository = manager.getRepository(Appointment);
+    const dateObj = parseDate(appointmentDateTime);
     return await repository.findOne({
         where: {
             patient: {
                 id: patientId
             },
-            appointmentDateTime: new Date(appointmentDateTime),
+            appointmentDateTime: dateObj,
         }
-    })
-}
+    });
+};
 
 // update AppointmentDatq c 
 const updateAppointmentWithTransaction = async (manager, appointmentId, appointmentData) => {

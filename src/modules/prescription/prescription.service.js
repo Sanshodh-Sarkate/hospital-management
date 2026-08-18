@@ -29,6 +29,7 @@ const formatPrescriptionForPatient = (p) => {
         appointment: {
             id: p.appointment?.id,
             appointmentDateTime: p.appointment?.appointmentDateTime || null,
+            consultationNotes: p.appointment?.consultationNotes || null,
         },
         medications: (p.prescriptionMedications || []).map((m) => ({
             id: m.id,
@@ -66,6 +67,7 @@ const formatPrescriptionForStaff = (p) => {
         appointment: {
             id: p.appointment?.id,
             appointmentDateTime: p.appointment?.appointmentDateTime || null,
+            consultationNotes: p.appointment?.consultationNotes || null,
         },
         medications: (p.prescriptionMedications || []).map((m) => ({
             id: m.id,

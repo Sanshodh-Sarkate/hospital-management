@@ -131,6 +131,16 @@ module.exports.rescheduleAppointmentValidation = [
     .withMessage("Invalid appointment date and time"),
 ];
 
+// Add Consultation Notes Validation
+module.exports.addConsultationNotesValidation = [
+  body("consultationNotes")
+    .trim()
+    .notEmpty()
+    .withMessage("Consultation notes are required")
+    .isLength({ min: 2, max: 2000 })
+    .withMessage("Consultation notes must be between 2 and 2000 characters"),
+];
+
 
 // module.exports = {
 //   createAppointmentValidation,

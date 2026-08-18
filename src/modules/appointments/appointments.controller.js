@@ -75,3 +75,13 @@ module.exports.completeAppointment = asyncHandler(async (req, res, next) => {
     const complatedAppointment = await appointmentService.completeAppointment(req.params.id, req.user)
     sendSuccess(res, 200, "Appointment completed successfully", { complatedAppointment });
 })
+
+module.exports.addConsultationNotes = asyncHandler(async (req, res, next) => {
+    const updatedAppointment = await appointmentService.addConsultationNotes(req.params.id, req.body.consultationNotes, req.user);
+    sendSuccess(res, 200, "Consultation notes added successfully", { updatedAppointment });
+});
+
+module.exports.getDoctorByAppointmentId = asyncHandler(async (req, res, next) => {
+    const doctor = await appointmentService.getDoctorByAppointmentId(req.params.id);
+    return sendSuccess(res, 200, "Doctor details for appointment retrieved successfully", { doctor });
+});

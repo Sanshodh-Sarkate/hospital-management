@@ -43,6 +43,16 @@ router.get('/', authMiddleware.protect, validateQueryFeatures, validationRequest
 
 router.get('/:id', authMiddleware.protect, doctorController.getDoctorById);
 
+// Get Appointments by Doctor ID (Admin, Receptionist, Doctor)
+router.get(
+  '/:id/appointments',
+  authMiddleware.protect,
+  authMiddleware.restrictTo("ADMIN", "RECEPTIONIST", "DOCTOR"),
+  validateQueryFeatures,
+  validationRequest,
+  doctorController.getDoctorAppointmentsById
+);
+
 router.patch('/:id', authMiddleware.protect, authMiddleware.restrictTo("ADMIN"), doctorValidations.updateDoctorValidation, validationRequest, doctorController.updateDoctor)
 
 router.patch('/:id/availability', authMiddleware.protect, authMiddleware.restrictTo("ADMIN", "DOCTOR"), doctorValidations.updateAvailabilityValidation, validationRequest, doctorController.updateDoctorAvailability)
