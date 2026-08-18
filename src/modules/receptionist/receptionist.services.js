@@ -18,6 +18,70 @@ module.exports.getReceptionistDashboardStats = async () => {
   return await receptionistRepository.getDashboardMetrics();
 };
 
+// Get My Receptionist Profile
+module.exports.getMyReceptionistProfile = async (userId) => {
+  const receptionist = await receptionistRepository.findReceptionistByUserId(userId);
+  if (!receptionist) throw new AppError("Receptionist profile not found", 404);
+  return receptionist;
+};
+
+// Update My Receptionist Profile (Receptionist Self-Service with Transaction & filterObject)
+module.exports.updateMyReceptionistProfile = async (userId, receptionistData) => {
+  const receptionist = await receptionistRepository.findReceptionistByUserId(userId);
+  if (!receptionist) throw new AppError("Receptionist profile not found", 404);
+
+  // Check email and phone uniqueness
+  await checkUserUniqueness({
+    email: receptionistData.email,
+    phoneNumber: receptionistData.phoneNumber,
+    excludeUserId: receptionist.user.id,
+  });
+
+  // Database Transaction to update both users & receptionists tables atomically
+  return await AppDataSource.transaction(async (manager) => {
+    // 1. Separate user table fields
+    const userData = filterObject(
+      receptionistData,
+      "firstName",
+      "lastName",
+      "email",
+      "phoneNumber"
+    );
+
+    if (Object.keys(userData).length > 0) {
+      await userRepository.updateUserWithTransaction(
+        manager,
+        receptionist.user.id,
+        userData
+      );
+    }
+
+    // 2. Separate receptionist table fields (Excluding shift - only Admin can assign shifts)
+    const receptionistInfo = filterObject(
+      receptionistData,
+      "dateOfBirth",
+      "gender",
+      "addressLine1",
+      "address",
+      "city",
+      "state",
+      "country",
+      "postalCode",
+      "profileImage"
+    );
+
+    receptionistInfo.updatedBy = { id: userId };
+
+    const updatedReceptionist = await receptionistRepository.updateReceptionistWithTransaction(
+      manager,
+      receptionist.id,
+      receptionistInfo
+    );
+
+    return updatedReceptionist;
+  });
+};
+
 
 module.exports.CreateReceptionist = async (receptionistUSerData, adminId) => {
   // check emial  

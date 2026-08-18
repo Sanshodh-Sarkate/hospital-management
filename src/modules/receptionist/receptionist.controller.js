@@ -13,6 +13,18 @@ module.exports.getReceptionistDashboard = asyncHandler(async (req, res, next) =>
   );
 });
 
+// Get My Receptionist Profile
+module.exports.getMyProfile = asyncHandler(async (req, res, next) => {
+  const receptionist = await receptionistServices.getMyReceptionistProfile(req.user.id);
+  return sendSuccess(res, 200, "Receptionist profile retrieved successfully", { receptionist });
+});
+
+// Update My Receptionist Profile
+module.exports.updateMyProfile = asyncHandler(async (req, res, next) => {
+  const updatedReceptionist = await receptionistServices.updateMyReceptionistProfile(req.user.id, req.body);
+  return sendSuccess(res, 200, "Receptionist profile updated successfully", updatedReceptionist);
+});
+
 
 module.exports.createReceptionist = asyncHandler(async (req, res, next) => {
   const result = await receptionistServices.CreateReceptionist(req.body, req.user.id);
@@ -52,4 +64,5 @@ module.exports.deleteReceptionist = asyncHandler(async (req, res, next) => {
   );
   return sendSuccess(res, 200, "Receptionist deleted successfully", deletedReceptionist);
 });
+
 
