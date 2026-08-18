@@ -23,7 +23,7 @@ const registerValidation = [
     .withMessage("Email is required")
     .isEmail()
     .withMessage("Please enter a valid email")
-    .normalizeEmail(),
+    .normalizeEmail({ gmail_remove_dots: false, gmail_remove_subaddress: false }),
 
   body("password")
     .notEmpty()
@@ -53,7 +53,7 @@ const  loginValidation  = [
     .withMessage("Email is required")
     .isEmail()
     .withMessage("Please enter a valid email")
-    .normalizeEmail(),
+    .normalizeEmail({ gmail_remove_dots: false, gmail_remove_subaddress: false }),
 
    body("password")
     .notEmpty()
@@ -69,7 +69,7 @@ const forgotPasswordValidation = [
     .withMessage("Email is required")
     .isEmail()
     .withMessage("Please enter a valid email")
-    .normalizeEmail(),
+    .normalizeEmail({ gmail_remove_dots: false, gmail_remove_subaddress: false }),
 ];
 
 const resetPasswordValidation = [

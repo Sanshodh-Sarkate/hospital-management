@@ -1,7 +1,7 @@
 const Module = require("node:module");
 const AppDataSource = require("../../config/db");
 const Appointment = require("./appointment.entity")
-const { LessThanOrEqual, IsNull, Not } = require("typeorm");
+const { LessThanOrEqual, IsNull, Not, In } = require("typeorm");
 const AppointmentStatus = require("../../common/enums/appointment-status.enum");
 const appointmentStatusEnum = require("../../common/enums/appointment-status.enum");
 const { parseDate } = require("../../common/utils/date.util");
@@ -78,6 +78,7 @@ const findDoctorAppointment = async (manager, doctorId, appointmentDateTime) => 
                 id: doctorId
             },
             appointmentDateTime: dateObj,
+            status: Not(In([AppointmentStatus.CANCELLED, AppointmentStatus.REJECTED]))
         }
     });
 };
@@ -92,6 +93,7 @@ const findPatientAppointment = async (manager, patientId, appointmentDateTime) =
                 id: patientId
             },
             appointmentDateTime: dateObj,
+            status: Not(In([AppointmentStatus.CANCELLED, AppointmentStatus.REJECTED]))
         }
     });
 };

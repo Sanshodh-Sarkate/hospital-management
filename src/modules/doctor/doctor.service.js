@@ -72,11 +72,35 @@ module.exports.createDoctor = async (doctorData, adminId) => {
     const newDoctor = await doctorRepository.createDoctor(manager, doctorInfo);
 
     return {
-      newUser,
-      newDoctor
-    }
-
-
+      doctor: {
+        id: newDoctor.id,
+        specialization: newDoctor.specialization,
+        qualification: newDoctor.qualification,
+        experienceYears: newDoctor.experienceYears,
+        licenseNumber: newDoctor.licenseNumber,
+        consultationFee: newDoctor.consultationFee,
+        availabilityStatus: newDoctor.availabilityStatus,
+        gender: newDoctor.gender,
+        dateOfBirth: newDoctor.dateOfBirth,
+        address: newDoctor.address,
+        emergencyContact: newDoctor.emergencyContact,
+        profileImage: newDoctor.profileImage,
+        bio: newDoctor.bio,
+        department: {
+          id: department.id,
+          departmentName: department.departmentName,
+        },
+        user: {
+          id: newUser.id,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
+          email: newUser.email,
+          phoneNumber: newUser.phoneNumber,
+          role: newUser.role,
+        },
+        createdAt: newDoctor.createdAt,
+      },
+    };
   });
 
 }

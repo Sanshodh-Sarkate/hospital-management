@@ -6,6 +6,106 @@ const filterObject = require("../../common/utils/filter-object.util")
 const { hashPassword, compareHashedPassword } = require('../../common/utils/password.util');
 const { checkUserUniqueness } = require('../../common/services/business-validation.service');
 const Roles = require("../../common/enums/role.enum");
+const {
+  generateAccessToken,
+  generateRefreshToken,
+  hashRefreshToken,
+} = require("../../common/utils/jwt.util");
+
+// Public Patient Self-Registration with Transaction & JWT Auto-Login
+module.exports.registerPatientSelf = async (patientData) => {
+  await checkUserUniqueness({
+    email: patientData.email,
+    phoneNumber: patientData.phoneNumber,
+  });
+
+  const hashedPassword = await hashPassword(patientData.password);
+
+  return await AppDataSource.transaction(async (manager) => {
+    // 1. Create User table record
+    const userData = filterObject(
+      patientData,
+      "firstName",
+      "lastName",
+      "email",
+      "phoneNumber"
+    );
+    userData.password = hashedPassword;
+    userData.role = Roles.PATIENT;
+
+    const newUser = await userRepository.createNewUserWithTransaction(manager, userData);
+
+    // 2. Create Patient table record linked to newUser.id
+    const patientInfo = filterObject(
+      patientData,
+      "dateOfBirth",
+      "gender",
+      "bloodGroup",
+      "address",
+      "city",
+      "state",
+      "country",
+      "postalCode",
+      "emergencyContactName",
+      "emergencyContactNumber",
+      "emergencyContactRelation",
+      "insuranceProvider",
+      "insurancePolicyNumber",
+      "profileImage"
+    );
+
+    patientInfo.user = { id: newUser.id };
+    patientInfo.createdBy = { id: newUser.id };
+
+    const newPatient = await patientRepository.createPatient(manager, patientInfo);
+
+    // 3. Generate JWT tokens for instant auto-login
+    const accessToken = generateAccessToken({
+      id: newUser.id,
+      role: newUser.role,
+    });
+    const refreshToken = generateRefreshToken({
+      id: newUser.id,
+      role: newUser.role,
+    });
+
+    const hashedRefreshToken = hashRefreshToken(refreshToken);
+    await userRepository.updateUserWithTransaction(manager, newUser.id, {
+      refreshTokenHash: hashedRefreshToken,
+    });
+
+    return {
+      patient: {
+        id: newPatient.id,
+        dateOfBirth: newPatient.dateOfBirth,
+        gender: newPatient.gender,
+        bloodGroup: newPatient.bloodGroup,
+        address: newPatient.address,
+        city: newPatient.city,
+        state: newPatient.state,
+        country: newPatient.country,
+        postalCode: newPatient.postalCode,
+        emergencyContactName: newPatient.emergencyContactName,
+        emergencyContactNumber: newPatient.emergencyContactNumber,
+        emergencyContactRelation: newPatient.emergencyContactRelation,
+        insuranceProvider: newPatient.insuranceProvider,
+        insurancePolicyNumber: newPatient.insurancePolicyNumber,
+        profileImage: newPatient.profileImage,
+        user: {
+          id: newUser.id,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
+          email: newUser.email,
+          phoneNumber: newUser.phoneNumber,
+          role: newUser.role,
+        },
+        createdAt: newPatient.createdAt,
+      },
+      accessToken,
+      refreshToken,
+    };
+  });
+};
 
 
 module.exports.registerPatient = async (patientData, logginUserId) => {
@@ -60,8 +160,32 @@ module.exports.registerPatient = async (patientData, logginUserId) => {
 
 
     return {
-      newUser,
-      newPatient,
+      patient: {
+        id: newPatient.id,
+        dateOfBirth: newPatient.dateOfBirth,
+        gender: newPatient.gender,
+        bloodGroup: newPatient.bloodGroup,
+        address: newPatient.address,
+        city: newPatient.city,
+        state: newPatient.state,
+        country: newPatient.country,
+        postalCode: newPatient.postalCode,
+        emergencyContactName: newPatient.emergencyContactName,
+        emergencyContactNumber: newPatient.emergencyContactNumber,
+        emergencyContactRelation: newPatient.emergencyContactRelation,
+        insuranceProvider: newPatient.insuranceProvider,
+        insurancePolicyNumber: newPatient.insurancePolicyNumber,
+        profileImage: newPatient.profileImage,
+        user: {
+          id: newUser.id,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
+          email: newUser.email,
+          phoneNumber: newUser.phoneNumber,
+          role: newUser.role,
+        },
+        createdAt: newPatient.createdAt,
+      },
     };
   })
 }
