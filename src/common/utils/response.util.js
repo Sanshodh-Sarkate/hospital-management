@@ -22,11 +22,11 @@ const sendPaginated = (res, statusCode = 200, message = "Success", paginatedData
 
 // Send Error Response
 const sendError = (res, statusCode = 500, message = "Internal Server Error", errors = null) => {
-  return res.status(statusCode).json({
-    success: false,
-    message,
-    errors,
-  });
+  const responseObj = { message };
+  if (errors !== null && errors !== undefined) {
+    responseObj.errors = errors;
+  }
+  return res.status(statusCode).json(responseObj);
 };
 
 module.exports = {
