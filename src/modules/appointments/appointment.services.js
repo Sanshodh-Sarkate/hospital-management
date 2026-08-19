@@ -699,7 +699,7 @@ module.exports.getMyAppointments = async (userId, queryString = {}) => {
         ? `Dr. ${apt.doctor.user.firstName} ${apt.doctor.user.lastName}`
         : "N/A",
       specialization: apt.doctor?.specialization || null,
-      department: apt.doctor?.department?.name || null
+      department: apt.doctor?.department?.departmentName || apt.department?.departmentName || null
     }
   }));
 
