@@ -64,6 +64,12 @@ module.exports = new EntitySchema({
       nullable: true,
     },
 
+    patientDocumentUrl: {
+      name: "patient_document_url",
+      type: "varchar",
+      length: 255,
+      nullable: true,
+    },
   },
 
   relations: {
