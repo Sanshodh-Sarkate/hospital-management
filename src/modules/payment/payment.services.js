@@ -102,19 +102,19 @@ const processPayment = async (billingId, paymentData, user) => {
 
   const updatedBill = await billingRepository.getBillingById(billingId);
 
-  // 1. 🔔 Auto-notify Patient when payment is processed
+  // 1.  Auto-notify Patient when payment is processed
   await notificationServices.notifyUser(
     billing.patient?.user?.id,
-    "Payment Receipt 💳",
+    "Payment Receipt  ",
     `Payment of ₹${newPaymentAmount.toFixed(2)} received via ${paymentData.paymentMethod} for invoice ${billing.billNumber}.`,
     NotificationType.PAYMENT,
     { paymentId: savedPayment.id, billingId: billing.id }
   );
 
-  // 2. 🔔 Auto-notify ALL Active Receptionists at the front desk
+  // 2.  Auto-notify ALL Active Receptionists at the front desk
   await notificationServices.notifyRole(
     Roles.RECEPTIONIST,
-    "Payment Collected 💳",
+    "Payment Collected  ",
     `Payment of ₹${newPaymentAmount.toFixed(2)} received from ${billing.patient?.user?.firstName || "Patient"} for invoice ${billing.billNumber}.`,
     NotificationType.PAYMENT,
     { paymentId: savedPayment.id, billingId: billing.id }

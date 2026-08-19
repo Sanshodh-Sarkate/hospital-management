@@ -173,7 +173,7 @@ module.exports.generateBillingForAppointment = async (appointmentId, manager) =>
 
   await billingRepository.createBillingItems(manager, itemsTosave);
 
-  // 🔔 Auto-notify Patient when invoice is generated
+  //  Auto-notify Patient when invoice is generated
   await notificationServices.notifyUser(
     appointment.patient?.user?.id,
     "New Invoice Generated 🧾",
