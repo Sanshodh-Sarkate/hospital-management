@@ -159,14 +159,13 @@ const getPendingAppointmentsForReminder = async (hours = 3) => {
     })
 }
 
-// Get Pending Appointments needing 4-hour cancellation (reminderSentAt IS NOT NULL)
+// Get Pending Appointments needing 4-hour cancellation
 const getPendingAppointmentsForCancellation = async (hours = 4) => {
     const thresholdDate = new Date(Date.now() - hours * 60 * 60 * 1000);
     return await appointmentRepository.find({
         where: {
             status: AppointmentStatus.PENDING,
             createdAt: LessThanOrEqual(thresholdDate),
-            reminderSentAt: Not(IsNull()),
         },
         relations: {
             patient: { user: true },

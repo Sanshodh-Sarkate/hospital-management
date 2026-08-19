@@ -4,13 +4,18 @@ const appointmentServices = require("../../modules/appointments/appointment.serv
 
 // Initialize 2-Stage Appointment Escalation Cron Job
 const initAppointmentEscalationCron = () => {
-    // Runs every 15 minutes: '*/15 * * * *'
+    // Run immediately on server start to clean up any past pending appointments
+    appointmentServices.processUnattendedAppointmentsEscalation().catch((err) => {
+        logger.error({ err }, "Initial appointment escalation run failed");
+    });
+
+    // Runs every 15 minutes: '*/15 
     cron.schedule("*/15 * * * *", async () => {
-        logger.info("Running 2-Stage Unattended Appointment Escalation Pipeline...");
+        logger.info("Running 2-Stage Unattended Appointment Escalation Pipeline..");
         await appointmentServices.processUnattendedAppointmentsEscalation();
     });
 
-    logger.info("Appointment Escalation Cron Job initialized (Runs every 15 mins)");
+    logger.info("Appointment Escalation Cron Job initialized (Runs immediately & every 15 mins)");
 };
 
 module.exports = initAppointmentEscalationCron;
