@@ -169,7 +169,7 @@ module.exports.createAppointment = async (appointmentData, user) => {
     // Create & Save Appointment
     const savedAppointment = await appointmentRepository.createAppointment(manager, appointmentInfo);
 
-    // 🔔 1. Auto-notify Patient when appointment is booked
+    //  1. Auto-notify Patient when appointment is booked
     await notificationServices.notifyUser(
       patient.user?.id,
       "Appointment Booked ",
@@ -665,10 +665,10 @@ module.exports.rescheduleAppointment = async (appointmentId, newAppointmentDateT
     );
   });
 
-  // 🔔 Auto-notify Patient AFTER transaction finishes
+  //  Auto-notify Patient AFTER transaction finishes
   await notificationServices.notifyUser(
     appointment.patient?.user?.id,
-    "Appointment Rescheduled 📅",
+    "Appointment Rescheduled",
     `Your appointment with Dr. ${appointment.doctor?.user?.firstName || "Doctor"} has been rescheduled to ${newDateTime.toLocaleDateString()}. Please review and confirm your new schedule.`,
     NotificationType.APPOINTMENT,
     { appointmentId: appointment.id }
@@ -769,7 +769,7 @@ module.exports.completeAppointment = async (
   //Auto-create notification for Patient AFTER transaction finishes
   await notificationServices.notifyUser(
     appointment.patient?.user?.id,
-    "Appointment Completed 🩺",
+    "Appointment Completed",
     `Your appointment with Dr. ${appointment.doctor?.user?.firstName || "Doctor"} is now completed.`,
     NotificationType.APPOINTMENT,
     { appointmentId: appointment.id }

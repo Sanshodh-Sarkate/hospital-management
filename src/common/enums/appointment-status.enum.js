@@ -5,5 +5,4 @@ module.exports = {
   COMPLETED: "COMPLETED",
   CANCELLED: "CANCELLED",
   REJECTED: "REJECTED",
-  NO_SHOW: "NO_SHOW",
 };
