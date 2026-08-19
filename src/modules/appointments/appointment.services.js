@@ -878,3 +878,32 @@ module.exports.getDoctorByAppointmentId = async (appointmentId) => {
   };
 };
 
+// Upload Patient Document attached to an Appointment (.pdf, .png, .jpg, .webp)
+module.exports.uploadPatientAppointmentDocument = async (appointmentId, file, user) => {
+  const appointment = await appointmentRepository.getAppointmentById(appointmentId);
+  if (!appointment) throw new AppError("Appointment not found", 404);
+
+  // Security Check: Patient role can ONLY upload documents for their OWN appointment!
+  if (user.role === Roles.PATIENT && appointment.patient?.user?.id !== user.id) {
+    throw new AppError("You are not authorized to upload documents for another patient's appointment", 403);
+  }
+
+  if (!file) throw new AppError("Please select a document or image file to upload", 400);
+
+  const documentUrl = `/uploads/appointment-documents/${file.filename}`;
+
+  const updatedAppointment = await AppDataSource.transaction(async (manager) => {
+    return await appointmentRepository.updateAppointmentWithTransaction(manager, appointmentId, {
+      patientDocumentUrl: documentUrl,
+      updatedBy: { id: user.id },
+    });
+  });
+
+  return {
+    appointmentId: updatedAppointment.id,
+    patientDocumentUrl: updatedAppointment.patientDocumentUrl,
+    appointmentDateTime: updatedAppointment.appointmentDateTime,
+    status: updatedAppointment.status,
+  };
+};
+

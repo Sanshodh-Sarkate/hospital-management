@@ -10,6 +10,7 @@ const validationRequest = require("../../common/middleware/validation.middleware
 const { validateQueryFeatures } = require("../../common/middleware/query-validation.middleware");
 const Roles = require("../../common/enums/appointment-status.enum");
 const { RECEPTIONIST } = require("../../common/enums/role.enum");
+const { uploadAppointmentDocument } = require("../../common/middleware/upload.middleware");
 
 const router = express.Router();
 
@@ -139,5 +140,16 @@ router.patch(
   appointmentController.completeAppointment
 );
 
+
+
+
+// Upload Patient Document attached to Appointment (Patient, Receptionist, Admin)
+router.post(
+  "/:id/upload-document",
+  authMiddleware.protect,
+  authMiddleware.restrictTo("PATIENT", "RECEPTIONIST", "ADMIN"),
+  uploadAppointmentDocument,
+  appointmentController.uploadPatientDocument
+);
 
 module.exports = router;

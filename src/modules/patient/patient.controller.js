@@ -6,7 +6,7 @@ const { sendSuccess, sendPaginated } = require('../../common/utils/response.util
 // Public Patient Self-Registration (With Cookie & Token Response)
 module.exports.registerPatientSelf = asyncHandler(async (req, res, next) => {
     const result = await patientServices.registerPatientSelf(req.body);
-    
+
     res.cookie('refreshToken', result.refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',

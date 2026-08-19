@@ -84,3 +84,8 @@ module.exports.getDoctorByAppointmentId = asyncHandler(async (req, res, next) =>
     const doctor = await appointmentService.getDoctorByAppointmentId(req.params.id);
     return sendSuccess(res, 200, "Doctor details for appointment retrieved successfully", { doctor });
 });
+
+module.exports.uploadPatientDocument = asyncHandler(async (req, res, next) => {
+    const result = await appointmentService.uploadPatientAppointmentDocument(req.params.id, req.file, req.user);
+    return sendSuccess(res, 200, "Appointment document uploaded successfully", result);
+});
